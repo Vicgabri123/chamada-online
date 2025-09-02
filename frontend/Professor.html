@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chamada Online</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Chamada Online - Professor</h1>
+
+  <div>
+    <label for="limite">Número máximo de alunos:</label>
+    <input type="number" id="limite" value="30" min="1" max="100">
+    <button onclick="criarLista()">Criar Lista de Chamada</button>
+  </div>
+
+  <div>
+    <button onclick="fecharLista()">Fechar Lista de Chamada</button>
+  </div>
+
+  <h2>Alunos presentes:</h2>
+  <ul id="lista-alunos"></ul>
+
+  <pre id="saida"></pre>
+  <h2>Alunos presentes:</h2>
+<ul id="lista-alunos"></ul>
+<button onclick="verLista()">Atualizar Lista</button>
+
+
+
+<script>
+async function criarLista() {
+  const limite = document.getElementById("limite").value;
+
+  const res = await fetch("http://localhost:3000/criar-lista", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ limite })
+  });
+
+  const data = await res.json();
+
+  document.getElementById("saida").innerText = data.msg;
+
+  // se o servidor mandar a lista, exibir
+  if (data.alunos) {
+    mostrarLista(data.alunos);
+  }
+}
+
+async function fecharLista() {
+  const res = await fetch("http://localhost:3000/fechar-lista", { method: "POST" });
+  const data = await res.json();
+
+  document.getElementById("saida").innerText = data.msg;
+
+  // esvaziar a lista na tela
+  document.getElementById("lista-alunos").innerHTML = "";
+}
+
+function mostrarLista(alunos) {
+  const ul = document.getElementById("lista-alunos");
+  ul.innerHTML = "";
+  alunos.forEach((aluno, i) => {
+    const li = document.createElement("li");
+    li.innerText = `${i + 1}. ${aluno}`;
+    ul.appendChild(li);
+  });
+}
+</script>
+<script>
+async function verLista() {
+  const res = await fetch("http://localhost:3000/lista");
+  const data = await res.json();
+  
+  const ul = document.getElementById("lista-alunos");
+  ul.innerHTML = ""; // limpa a lista antes de preencher
+  data.forEach((aluno, i) => {
+    const li = document.createElement("li");
+    li.innerText = `${i + 1}. ${aluno.nome} (${aluno.vezes}/2)`;
+    ul.appendChild(li);
+  });
+}
+</script>
+
+</body>
+</html>

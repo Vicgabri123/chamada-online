@@ -1,0 +1,17 @@
+<h2>Aluno</h2>
+<input id="nome" type="text" placeholder="Seu nome">
+<button onclick="registrarPresenca()">Enviar Presença</button>
+<div id="saida"></div>
+
+<script>
+async function registrarPresenca() {
+  const nome = document.getElementById("nome").value;
+  const res = await fetch("http://localhost:3000/presenca", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome })
+  });
+  const data = await res.json();
+  document.getElementById("saida").innerText = data.msg;
+}
+</script>

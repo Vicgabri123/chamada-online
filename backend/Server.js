@@ -4,20 +4,25 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static("../Frontend"));
 
-app.use(express.static("../Frontend"))
+let listaAberta = false;
+let limite = 0;
+let expiresAt = null;
+let presencas = []; // { nome, horario, latitude, longitude, vezes }
 
-let listaAberta = false; // controla se a lista está aberta ou fechada
-let limite = 0;          // limite de alunos
-let presencas = [];      // array de alunos com { nome, vezes }
-
+// Criar lista
 app.post("/criar-lista", (req, res) => {
-  limite = req.body.limite;
-  lista = []; // zera lista anterior
+  const { limite: limiteInput, duracao } = req.body;
+  limite = parseInt(limiteInput);
+  presencas = [];
   listaAberta = true;
-  res.json({ msg: `Lista criada com limite de ${limite} alunos.`, alunos: presencas });
+  expiresAt = Date.now() + (parseInt(duracao) * 60 * 60 * 1000);
+
+  res.json({ msg: `Lista criada com limite de ${limite} alunos e duração de ${duracao} horas.` });
 });
 
+// Fechar lista
 app.post("/fechar-lista", (req, res) => {
   listaAberta = false;
   res.json({ msg: "Lista fechada.", alunos: presencas });
@@ -29,18 +34,28 @@ app.post("/presenca", (req, res) => {
     return res.json({ msg: "Nenhuma lista aberta no momento." });
   }
 
-  const { nome } = req.body;
-  if (!nome) return res.json({ msg: "Nome é obrigatório!" });
+  if (Date.now() > expiresAt) {
+    listaAberta = false;
+    return res.json({ msg: "O tempo da lista acabou! Aguarde a próxima chamada." });
+  }
 
-  // Procurar se já existe o aluno na lista
+  const { nome, horario, latitude, longitude, deviceId } = req.body;
+  if (!nome) return res.json({ msg: "Nome é obrigatório!" });
+  if (!deviceId) return res.json({ msg: "Identificador do dispositivo é obrigatório!" });
+
+    // Check if this device has already registered
+  let deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
+  if (deviceAlreadyUsed) {
+    return res.json({ msg: "Este dispositivo já registrou presença." });
+  }
+
   let aluno = presencas.find(a => a.nome === nome);
 
   if (!aluno) {
-    // Novo aluno
     if (presencas.length >= limite) {
       return res.json({ msg: "Limite de alunos atingido." });
     }
-    aluno = { nome, vezes: 0 };
+    aluno = { nome, horario, latitude, longitude, vezes: 0, deviceId };
     presencas.push(aluno);
   }
 
@@ -49,7 +64,7 @@ app.post("/presenca", (req, res) => {
   }
 
   aluno.vezes++;
-  res.json({ msg: `Presença registrada (${aluno.vezes}/2).` });
+  res.json({ msg: `${nome} registrado com sucesso às ${horario} (${aluno.vezes}/2)` });
 });
 
 // Rota para o professor ver a lista
@@ -58,3 +73,9 @@ app.get("/lista", (req, res) => {
 });
 
 app.listen(3000, () => console.log("http://localhost:3000/"));
+
+// Nota: Use Node.js para rodar este servidor. Comando: node backend/Server.js
+// Certifique-se de ter o Express instalado: npm install express cors
+// Acesse o frontend em: http://localhost:3000/Professor.html
+// Acesse o frontend do aluno em: http://localhost:3000/Aluno.html
+// Use ferramentas como Postman ou Insomnia para testar as rotas POST.

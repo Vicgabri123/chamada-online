@@ -9,44 +9,42 @@
 <body>
   <h1>Chamada Online - Professor</h1>
 
-  <div>
+ <div>
     <label for="limite">Número máximo de alunos:</label>
     <input type="number" id="limite" value="30" min="1" max="100">
+
+    <label for="duracao">Duração da lista (horas):</label>
+    <input type="number" id="duracao" value="24" min="1" max="72">
+
     <button onclick="criarLista()">Criar Lista de Chamada</button>
   </div>
 
   <div>
     <button onclick="fecharLista()">Fechar Lista de Chamada</button>
+    <button onclick="verLista()">Atualizar Lista</button>
   </div>
 
   <h2>Alunos presentes:</h2>
-  <ul id="lista-alunos"></ul>
-
-  <pre id="saida"></pre>
-  <h2>Alunos presentes:</h2>
 <ul id="lista-alunos"></ul>
-<button onclick="verLista()">Atualizar Lista</button>
 
+<pre id="saida"></pre>
 
+</body>
+</html>
 
 <script>
 async function criarLista() {
   const limite = document.getElementById("limite").value;
+  const duracao = document.getElementById("duracao").value;
 
   const res = await fetch("http://localhost:3000/criar-lista", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ limite })
+    body: JSON.stringify({ limite, duracao })
   });
 
   const data = await res.json();
-
   document.getElementById("saida").innerText = data.msg;
-
-  // se o servidor mandar a lista, exibir
-  if (data.alunos) {
-    mostrarLista(data.alunos);
-  }
 }
 
 async function fecharLista() {
@@ -54,9 +52,13 @@ async function fecharLista() {
   const data = await res.json();
 
   document.getElementById("saida").innerText = data.msg;
-
-  // esvaziar a lista na tela
   document.getElementById("lista-alunos").innerHTML = "";
+}
+
+async function verLista() {
+  const res = await fetch("http://localhost:3000/lista");
+  const data = await res.json();
+  mostrarLista(data);
 }
 
 function mostrarLista(alunos) {
@@ -64,25 +66,12 @@ function mostrarLista(alunos) {
   ul.innerHTML = "";
   alunos.forEach((aluno, i) => {
     const li = document.createElement("li");
-    li.innerText = `${i + 1}. ${aluno}`;
+    li.innerText = `${i + 1}. Nome: ${aluno.nome} | Hora: ${aluno.horario} | Local: (${aluno.latitude}, ${aluno.longitude}) | Envios: ${aluno.vezes}/2`;
     ul.appendChild(li);
   });
 }
-</script>
-<script>
-async function verLista() {
-  const res = await fetch("http://localhost:3000/lista");
-  const data = await res.json();
-  
-  const ul = document.getElementById("lista-alunos");
-  ul.innerHTML = ""; // limpa a lista antes de preencher
-  data.forEach((aluno, i) => {
-    const li = document.createElement("li");
-    li.innerText = `${i + 1}. ${aluno.nome} (${aluno.vezes}/2)`;
-    ul.appendChild(li);
-  });
-}
+
+
 </script>
 
-</body>
-</html>
+

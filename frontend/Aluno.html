@@ -5,13 +5,47 @@
 
 <script>
 async function registrarPresenca() {
+
+// Gerar ou obter um ID único para o dispositivo
+  function getDeviceId() {
+  let deviceId = localStorage.getItem("deviceId");
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem("deviceId", deviceId);
+  }
+  return deviceId;
+}
+
+  // Pegar nome
   const nome = document.getElementById("nome").value;
-  const res = await fetch("http://localhost:3000/presenca", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nome })
+
+  if (!nome) {
+    alert("Digite seu nome antes de enviar!");
+    return;
+  }
+
+  const deviceId = getDeviceId(); // Pega o deviceId único
+
+  // Pegar horário atual
+  const horario = new Date().toLocaleString();
+
+  // Pegar localização (latitude e longitude)
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const latitude = pos.coords.latitude;
+    const longitude = pos.coords.longitude;
+
+    const res = await fetch("http://localhost:3000/presenca", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome, horario, latitude, longitude, deviceId })
+    });
+
+    const data = await res.json();
+    document.getElementById("saida").innerText = data.msg;
+
+  }, (err) => {
+    alert("Não foi possível obter a localização.");
+    console.error(err);
   });
-  const data = await res.json();
-  document.getElementById("saida").innerText = data.msg;
 }
 </script>

@@ -45,7 +45,25 @@ async function criarLista() {
 
   const data = await res.json();
   document.getElementById("saida").innerText = data.msg;
+
+  // remove QR code antigo, se existir
+
+   const saida = document.getElementById("saida");
+  const oldImg = document.getElementById("qrcode-img");
+  if (oldImg) oldImg.remove();
+
+  // se o backend retornou um QR code, mostra
+  if (data.qrCode) {
+    const img = document.createElement("img");
+    img.id = "qrcode-img";
+    img.src = data.qrCode;
+    img.alt = "QR Code para alunos";
+    img.style.display = "block";
+    img.style.marginTop = "15px";
+    saida.appendChild(img);
+    }
 }
+
 
 async function fecharLista() {
   const res = await fetch("http://localhost:3000/fechar-lista", { method: "POST" });
@@ -70,6 +88,8 @@ function mostrarLista(alunos) {
     ul.appendChild(li);
   });
 }
+
+
 
 
 </script>

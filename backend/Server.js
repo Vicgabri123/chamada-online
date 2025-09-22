@@ -52,14 +52,20 @@ app.post("/presenca", (req, res) => {
     return res.json({ msg: "O tempo da lista acabou! Aguarde a próxima chamada." });
   }
 
-  const { nome, horario, latitude, longitude, deviceId } = req.body;
+  const { nome, matricula, horario, latitude, longitude, deviceId } = req.body;
   if (!nome) return res.json({ msg: "Nome é obrigatório!" });
+  if (!matricula) return res.json({ msg: "matricula é obrigatório!" });
   if (!deviceId) return res.json({ msg: "Identificador do dispositivo é obrigatório!" });
 
     // Check if this device has already registered
   let deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
   if (deviceAlreadyUsed) {
     return res.json({ msg: "Este dispositivo já registrou presença." });
+  }
+   
+  const existente = aluno.find(a => a.matricula === matricula);
+  if (existente) {
+    return res.json({ msg: `Matrícula ${matricula} já registrou presença.` });
   }
 
   let aluno = presencas.find(a => a.nome === nome);
@@ -68,7 +74,7 @@ app.post("/presenca", (req, res) => {
     if (presencas.length >= limite) {
       return res.json({ msg: "Limite de alunos atingido." });
     }
-    aluno = { nome, horario, latitude, longitude, vezes: 0, deviceId };
+    aluno = { nome, matricula, horario, latitude, longitude, vezes: 0, deviceId };
     presencas.push(aluno);
   }
 
@@ -77,7 +83,7 @@ app.post("/presenca", (req, res) => {
   }
 
   aluno.vezes++;
-  res.json({ msg: `${nome} registrado com sucesso às ${horario} (${aluno.vezes}/2)` });
+  res.json({ msg: `${nome} ${matricula} registrado com sucesso às ${horario} (${aluno.vezes}/2)` });
 });
 
 // Rota para o professor ver a lista

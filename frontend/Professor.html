@@ -34,6 +34,8 @@
 
 <script>
 async function criarLista() {
+  const confirmar = confirm("Tem certeza que deseja criar uma nova lista? Isso vai apagar a lista atual.");
+  if (!confirmar) return; // se clicar em Cancelar, não faz nada
   const limite = document.getElementById("limite").value;
   const duracao = document.getElementById("duracao").value;
 

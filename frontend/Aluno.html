@@ -1,4 +1,5 @@
 <h2>Aluno</h2>
+<input id="matricula" type="text" placeholder="Sua matrícula">
 <input id="nome" type="text" placeholder="Seu nome">
 <button onclick="registrarPresenca()">Enviar Presença</button>
 <div id="saida"></div>
@@ -16,6 +17,12 @@ async function registrarPresenca() {
   return deviceId;
 }
 
+  const matricula = document.getElementById("matricula").value;
+
+  if (!matricula) {
+    alert("Digite sua matricula antes de enviar!");
+    return;
+  }
   // Pegar nome
   const nome = document.getElementById("nome").value;
 
@@ -37,7 +44,7 @@ async function registrarPresenca() {
     const res = await fetch("http://localhost:3000/presenca", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, horario, latitude, longitude, deviceId })
+      body: JSON.stringify({ nome, matricula, horario, latitude, longitude, deviceId })
     });
 
     const data = await res.json();

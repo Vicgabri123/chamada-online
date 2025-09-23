@@ -7,7 +7,30 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="containerInicio">
+    <div class="cardInicio">
+      <img id="logo" src="logos/logo1(alt).png" alt="Logo Chamada" class="logo">
   <h1>Sistema de Chamada</h1>
-  <a href="professor.html">Professor</a> | <a href="aluno.html">Aluno</a>
+  <div class="links">
+  <a href="professor.html" class="btn">Professor</a> | <a href="aluno.html" class="btn">Aluno</a>
+   </div>
+  </div>
+ </div>
+ <script>
+    // imagens que vão rodar
+    const logos = ["logos/logo1.png", "logos/logo2.png", "logos/logo3.png", "logos/logo4.png"];
+    let index = 0;
+    const logoEl = document.getElementById("logo");
+
+    setInterval(() => {
+      index = (index + 1) % logos.length; // vai rodando e voltando ao início
+      logoEl.style.opacity = 0; // esconde antes da troca
+      setTimeout(() => {
+        logoEl.src = logos[index];
+        logoEl.style.opacity = 1; // volta com efeito
+      }, 500); // meio segundo de fade
+    }, 2000); // troca a cada 2 segundos
+  </script>
+
 </body>
 </html>

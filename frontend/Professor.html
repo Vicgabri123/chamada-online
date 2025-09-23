@@ -86,7 +86,7 @@ function mostrarLista(alunos) {
   ul.innerHTML = "";
   alunos.forEach((aluno, i) => {
     const li = document.createElement("li");
-    li.innerText = `${i + 1}. Nome: ${aluno.nome} | Hora: ${aluno.horario} | Local: (${aluno.latitude}, ${aluno.longitude}) | Envios: ${aluno.vezes}/2`;
+    li.innerText = `${i + 1}. Nome: ${aluno.nome} | Matrícula: ${aluno.matricula} | Hora: ${aluno.horario} | Local: ${aluno.grupo} | Envios: ${aluno.vezes}/2`;
     ul.appendChild(li);
   });
 }

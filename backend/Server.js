@@ -11,6 +11,19 @@ let listaAberta = false;
 let limite = 0;
 let expiresAt = null;
 let presencas = []; // { nome, horario, latitude, longitude, vezes }
+let referenciaSala = null;
+
+function calcularDistancia(lat1, lon1, lat2, lon2) {
+  const R = 6371e3; // raio da Terra em metros
+  const rad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * rad;
+  const dLon = (lon2 - lon1) * rad;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // distância em metros
+}
 
 // Criar lista
 app.post("/criar-lista", (req, res) => {
@@ -19,7 +32,7 @@ app.post("/criar-lista", (req, res) => {
   presencas = [];
   listaAberta = true;
   expiresAt = Date.now() + (parseInt(duracao) * 60 * 60 * 1000);
-
+  const horario = new Date().toLocaleTimeString();
 
   const alunoUrl = "https://ahujgn-ip-167-249-108-155.tunnelmole.net/aluno.html";
 
@@ -43,6 +56,7 @@ app.post("/fechar-lista", (req, res) => {
 
 // Registrar presença
 app.post("/presenca", (req, res) => {
+  const horario = new Date().toLocaleTimeString();
   if (!listaAberta) {
     return res.json({ msg: "Nenhuma lista aberta no momento." });
   }
@@ -52,10 +66,13 @@ app.post("/presenca", (req, res) => {
     return res.json({ msg: "O tempo da lista acabou! Aguarde a próxima chamada." });
   }
 
-  const { nome, matricula, horario, latitude, longitude, deviceId } = req.body;
+  const { nome, matricula, latitude, longitude, deviceId } = req.body;
   if (!nome) return res.json({ msg: "Nome é obrigatório!" });
   if (!matricula) return res.json({ msg: "matricula é obrigatório!" });
   if (!deviceId) return res.json({ msg: "Identificador do dispositivo é obrigatório!" });
+  if (latitude == null || longitude == null) {
+    return res.json({ msg: "Localização não encontrada. Ative seu GPS." });
+  }
 
     // Check if this device has already registered
   let deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
@@ -63,18 +80,33 @@ app.post("/presenca", (req, res) => {
     return res.json({ msg: "Este dispositivo já registrou presença." });
   }
    
-  const existente = aluno.find(a => a.matricula === matricula);
+  if (!referenciaSala) {
+    referenciaSala = { latitude, longitude };
+  }
+
+  let grupo = "Externo";
+  const distancia = calcularDistancia(
+    referenciaSala.latitude,
+    referenciaSala.longitude,
+    latitude,
+    longitude
+  );
+  if (distancia <= 500) {
+    grupo = "Sala";
+  }
+
+  const existente = presencas.find(a => a.matricula === matricula);
   if (existente) {
     return res.json({ msg: `Matrícula ${matricula} já registrou presença.` });
   }
 
-  let aluno = presencas.find(a => a.nome === nome);
+
 
   if (!aluno) {
     if (presencas.length >= limite) {
       return res.json({ msg: "Limite de alunos atingido." });
     }
-    aluno = { nome, matricula, horario, latitude, longitude, vezes: 0, deviceId };
+    aluno = { nome, matricula, horario, vezes: 0, deviceId, grupo };
     presencas.push(aluno);
   }
 
@@ -83,7 +115,7 @@ app.post("/presenca", (req, res) => {
   }
 
   aluno.vezes++;
-  res.json({ msg: `${nome} ${matricula} registrado com sucesso às ${horario} (${aluno.vezes}/2)` });
+  res.json({ msg: `${nome} ${matricula} registrado com sucesso às ${horario} | Grupo: ${grupo} (${aluno.vezes}/2)` });
 });
 
 // Rota para o professor ver a lista

@@ -34,7 +34,7 @@ app.post("/criar-lista", (req, res) => {
   expiresAt = Date.now() + (parseInt(duracao) * 60 * 60 * 1000);
   const horario = new Date().toLocaleTimeString();
 
-  const alunoUrl = "https://ahujgn-ip-167-249-108-155.tunnelmole.net/aluno.html";
+  const alunoUrl = "https://jehons-ip-167-249-108-162.tunnelmole.net/aluno.html";
 
   QRCode.toDataURL(alunoUrl, (err, qrCodeData) => {
     if (err) {
@@ -95,8 +95,8 @@ app.post("/presenca", (req, res) => {
     grupo = "Sala";
   }
 
-  const existente = presencas.find(a => a.matricula === matricula);
-  if (existente) {
+  let aluno = presencas.find(a => a.matricula === matricula);
+  if (aluno) {
     return res.json({ msg: `Matrícula ${matricula} já registrou presença.` });
   }
 

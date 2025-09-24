@@ -25,13 +25,22 @@
   </div>
 
   <h2>Alunos presentes:</h2>
-  <div id="loader" style="display: none;">
+  <!-- Loader de atualização -->
+  <div id="loader">
   <img id="loader-logo" src="logos/EA1.png" alt="Carregando..." class="logo">
   <p>Atualizando lista...</p>
 </div>
+
 <ul id="lista-alunos"></ul>
 
 <pre id="saida"></pre>
+
+<div id="qrcode-container">
+  <h3>QR Code de Acesso</h3>
+  <img id="qrcode-img" alt="QR Code para alunos">
+</div>
+
+<button class="qRB" onclick="toggleQrCode()">Mostrar/Esconder QR Code</button>
 
 </body>
 </html>
@@ -83,19 +92,18 @@ async function verLista() {
     document.getElementById("saida").innerText = data.msg;
 
     const saida = document.getElementById("saida");
-    const oldImg = document.getElementById("qrcode-img");
-    if (oldImg) oldImg.remove();
 
     if (data.qrCode) {
-      const img = document.createElement("img");
-      img.id = "qrcode-img";
-      img.src = data.qrCode;
-      img.alt = "QR Code para alunos";
-      img.style.display = "block";
-      img.style.marginTop = "15px";
-      saida.appendChild(img);
+      const img = document.getElementById("qrcode-img");
+  img.src = data.qrCode;
+  document.getElementById("qrcode-container").style.display = "block";
     }
   }
+  
+  function toggleQrCode() {
+  const container = document.getElementById("qrcode-container");
+  container.style.display = container.style.display === "none" ? "block" : "none";
+}
 
   async function fecharLista() {
     const res = await fetch("http://localhost:3000/fechar-lista", { method: "POST" });

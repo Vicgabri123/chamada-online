@@ -1,9 +1,25 @@
-<h2>Aluno</h2>
-<input id="matricula" type="text" placeholder="Sua matrícula">
-<input id="nome" type="text" placeholder="Seu nome">
-<button onclick="registrarPresenca()">Enviar Presença</button>
-<div id="saida"></div>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chamada Online - Aluno</title>
+  <link rel="stylesheet" href="styleA.css">
+<div class="container">
+  <img src="logos/A3.gif" alt="Decoração esquerda" class="side-img">
+</div>
+<div class="card">
+    <h2>Registro de Presença</h2>
+    <div class="input-group">
+      <input id="nome" type="text" placeholder="Seu nome">
+      <input id="matricula" type="text" placeholder="Matrícula">
+    </div>
+    <button onclick="registrarPresenca()">Enviar Presença</button>
+    <div id="saida"></div>
+     
+  </div>
 
+  <img src="logos/A2(A).gif" alt="Decoração direita" class="side-img right">
 <script>
 async function registrarPresenca() {
 

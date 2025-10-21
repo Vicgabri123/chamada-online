@@ -14,61 +14,104 @@
       <input id="nome" type="text" placeholder="Seu nome">
       <input id="matricula" type="text" placeholder="Matrícula">
     </div>
-    <button onclick="registrarPresenca()">Enviar Presença</button>
+    <button id="btn-presenca" onclick="registrarPresenca()">Enviar Presença</button>
     <div id="saida"></div>
      
+    <!-- Mensagem de confirmação -->
+<div id="confirmacao" class="confirma">
+  <img src="logos/A1.gif" alt="Presença confirmada" class="side-img">
+  <p id="mensagem-confirmacao" class="mconfirma"></p>
+</div>
   </div>
 
   <img src="logos/A2(A).gif" alt="Decoração direita" class="side-img right">
+
 <script>
 async function registrarPresenca() {
+  const nome = document.getElementById("nome").value.trim();
+  const matricula = document.getElementById("matricula").value.trim();
+  const botao = document.getElementById("btn-presenca");
 
-// Gerar ou obter um ID único para o dispositivo
-  function getDeviceId() {
+  if (!nome || !matricula) {
+    alert("Preencha todos os campos!");
+    return;
+  }
+
+  botao.disabled = true;
+  botao.style.backgroundColor = "#aaa";
+  botao.innerText = "Enviando...";
+  setTimeout(() => {
+      botao.disabled = false;
+      botao.style.backgroundColor = "#4CAF50";
+      botao.innerText = "Enviar Presença";
+    }, 3000); // espera 3 segundos antes de reativar
+
+  // tenta obter localização obrigatoriamente
+  if (!navigator.geolocation) {
+    alert("Seu navegador não suporta geolocalização!");
+    return;
+  }
+
+  let latitude, longitude;
+
+  // tenta por até 10 segundos
+  const posicao = await new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject("Tempo limite excedido!"), 10000);
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        clearTimeout(timeout);
+        resolve(pos);
+      },
+      err => {
+        clearTimeout(timeout);
+        reject("Não foi possível obter localização. Ative o GPS e tente novamente.");
+      },
+      { enableHighAccuracy: true }
+    );
+  }).catch(erro => {
+    alert(erro);
+    return null;
+  });
+
+  if (!posicao) return; // interrompe se não tiver localização
+
+  latitude = posicao.coords.latitude;
+  longitude = posicao.coords.longitude;
+
+  const horario = new Date().toLocaleTimeString();
+
+  // gera ou recupera um ID único para o dispositivo
   let deviceId = localStorage.getItem("deviceId");
   if (!deviceId) {
     deviceId = crypto.randomUUID();
     localStorage.setItem("deviceId", deviceId);
   }
-  return deviceId;
-}
 
-  const matricula = document.getElementById("matricula").value;
-
-  if (!matricula) {
-    alert("Digite sua matricula antes de enviar!");
-    return;
-  }
-  // Pegar nome
-  const nome = document.getElementById("nome").value;
-
-  if (!nome) {
-    alert("Digite seu nome antes de enviar!");
-    return;
-  }
-
-  const deviceId = getDeviceId(); // Pega o deviceId único
-
-  // Pegar horário atual
-  const horario = new Date().toLocaleString();
-
-  // Pegar localização (latitude e longitude)
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    const latitude = pos.coords.latitude;
-    const longitude = pos.coords.longitude;
-
-    const res = await fetch("http://localhost:3000/presenca", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, matricula, horario, latitude, longitude, deviceId })
-    });
-
-    const data = await res.json();
-    document.getElementById("saida").innerText = data.msg;
-
-  }, (err) => {
-    alert("Não foi possível obter a localização.");
-    console.error(err);
+  const res = await fetch("http://localhost:3000/presenca", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome, matricula, latitude, longitude, horario, deviceId })
   });
+
+  const data = await res.json();
+  const saida = document.getElementById("saida");
+  saida.innerText = data.msg;
+
+  // mostra imagem de confirmação apenas se o envio for sucesso
+  if (data.msg.includes("registrado com sucesso")) {
+    const confirmacao = document.getElementById("confirmacao");
+    const mensagem = document.getElementById("mensagem-confirmacao");
+
+    mensagem.textContent = `Presença anotada às ${horario} de ${nome}.`;
+    confirmacao.style.display = "block";
+
+    // efeito suave
+    confirmacao.style.opacity = "1";
+    setTimeout(() => {
+      confirmacao.style.transition = "opacity 1s";
+      confirmacao.style.opacity = "0";
+      setTimeout(() => (confirmacao.style.display = "none"), 1000);
+    }, 5000);
+  }
 }
 </script>

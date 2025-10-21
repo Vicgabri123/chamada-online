@@ -54,7 +54,7 @@
     }
 
     button {
-      width: 100%;
+      width: 70%;
       padding: 12px;
       border: none;
       border-radius: 6px;
@@ -62,7 +62,7 @@
       color: white;
       font-size: 16px;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: background-color 0.3s ease, transform 0.1s ease;
     }
 
     button:hover {
@@ -74,3 +74,23 @@
       font-size: 14px;
       color: #333;
     }
+
+
+    .confirma{
+  display:none; 
+  text-align:center; 
+  margin-top:20px;
+}
+
+.pconfirmado {
+width: 5px;
+  margin-bottom: 15px;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.mconfirma {
+  font-size:18px; 
+  color:#2e8b57; 
+  font-weight:bold; 
+  margin-top:10px;
+}

@@ -27,14 +27,15 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 
 // Criar lista
 app.post("/criar-lista", (req, res) => {
-  const { limite: limiteInput, duracao } = req.body;
+  const { limite: limiteInput, duracao, latitude,longitude } = req.body;
   limite = parseInt(limiteInput);
   presencas = [];
   listaAberta = true;
   expiresAt = Date.now() + (parseInt(duracao) * 60 * 60 * 1000);
+  referenciaSala = { latitude, longitude };
   const horario = new Date().toLocaleTimeString();
 
-  const alunoUrl = "https://jehons-ip-167-249-108-162.tunnelmole.net/aluno.html";
+  const alunoUrl = "https://meuchamada.netlify.app/";
 
   QRCode.toDataURL(alunoUrl, (err, qrCodeData) => {
     if (err) {

@@ -13,8 +13,10 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  background: url('/logos/back2.png') no-repeat center center fixed;
-  background-attachment: fixed;
+  background-image: url('logos/back3.png'); /* Substitua pelo caminho da sua imagem */
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
   color: #333;
   padding: 1rem;
 }

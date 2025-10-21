@@ -19,12 +19,14 @@
     
     </div>
 
-    <div><button onclick="criarLista()">Criar Lista de Chamada</button></div>
+  <div>
+    <button onclick="criarLista()">Criar Lista de Chamada</button>
+  </div>
   <div>
     <button onclick="fecharLista()">Fechar Lista de Chamada</button>
   </div>
-
-  <div><button onclick="verLista()">Atualizar Lista</button></div>
+  <div>
+    <button onclick="verLista()">Atualizar Lista</button></div>
 
   
 
@@ -115,6 +117,9 @@ setInterval(() => {
 }, 1500); // troca a cada 1.5s
 </script>
 <script>
+
+ const baseURL = "https://chamada-online.onrender.com/";
+  
 async function verLista() {
     const loader = document.getElementById("loader");
     const ul = document.getElementById("lista-alunos");
@@ -123,7 +128,7 @@ async function verLista() {
     ul.innerHTML = "";
 
     try {
-      const res = await fetch("http://localhost:3000/lista");
+      const res = await fetch(`${baseURL}/lista`);
       const data = await res.json();
       mostrarLista(data);
     } catch (error) {
@@ -144,7 +149,7 @@ async function verLista() {
     const latitude = pos.coords.latitude;
     const longitude = pos.coords.longitude;
 
-    const res = await fetch("http://localhost:3000/criar-lista", {
+    const res = await fetch(`${baseURL}/criar-lista`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ limite, duracao, latitude, longitude })
@@ -176,7 +181,7 @@ async function verLista() {
 }
 
   async function fecharLista() {
-    const res = await fetch("http://localhost:3000/fechar-lista", { method: "POST" });
+    const res = await fetch(`${baseURL}/fechar-lista`, { method: "POST" });
     const data = await res.json();
 
     document.getElementById("saida").innerText = data.msg;

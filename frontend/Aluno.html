@@ -19,7 +19,7 @@
      
     <!-- Mensagem de confirmação -->
 <div id="confirmacao" class="confirma">
-  <img src="logos/A1.gif" alt="Presença confirmada" class="side-img">
+  <img src="logos/A1.png" alt="Presença confirmada" class="side-img">
   <p id="mensagem-confirmacao" class="mconfirma"></p>
 </div>
   </div>
@@ -27,6 +27,8 @@
   <img src="logos/A2(A).gif" alt="Decoração direita" class="side-img right">
 
 <script>
+  const baseURL = "https://chamada-online.onrender.com/";
+
 async function registrarPresenca() {
   const nome = document.getElementById("nome").value.trim();
   const matricula = document.getElementById("matricula").value.trim();
@@ -87,7 +89,7 @@ async function registrarPresenca() {
     localStorage.setItem("deviceId", deviceId);
   }
 
-  const res = await fetch("http://localhost:3000/presenca", {
+  const res = await fetch(`${baseURL}/presenca`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nome, matricula, latitude, longitude, horario, deviceId })

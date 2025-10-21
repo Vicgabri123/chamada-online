@@ -2,9 +2,31 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const QRCode = require("qrcode");
+const session = require("express-session");
 
-app.use(cors());
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://meuchamada.netlify.app/";
+const SESSION_SECRET = process.env.SESSION_SECRET || "Baobhan_Sith";
+
 app.use(express.json());
+
+
+app.use(cors({
+  origin: FRONTEND_URL,
+  credentials: true
+}));
+
+app.use(session({
+  secret: SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: true,      // requer HTTPS (Render fornece HTTPS)
+    sameSite: "none",  // necessário para cookies cross-site
+    maxAge: 24*60*60*1000
+  }
+}));
+
 app.use(express.static("../Frontend"));
 
 let listaAberta = false;

@@ -16,62 +16,180 @@
     <label for="duracao">Duração da lista (horas):</label>
     <input type="number" id="duracao" value="24" min="1" max="72">
 
-    <button onclick="criarLista()">Criar Lista de Chamada</button>
-  </div>
+    
+    </div>
 
+    <div><button onclick="criarLista()">Criar Lista de Chamada</button></div>
   <div>
     <button onclick="fecharLista()">Fechar Lista de Chamada</button>
-    <button onclick="verLista()">Atualizar Lista</button>
   </div>
 
-  <h2>Alunos presentes:</h2>
-<ul id="lista-alunos"></ul>
+  <div><button onclick="verLista()">Atualizar Lista</button></div>
+
+  
+
+  <h2 class="AlunosPresentes">Alunos presentes:</h2>
+  <!-- Loader de atualização -->
+  <div id="loader">
+  <img id="loader-logo" src="logos/EA1.png" alt="Carregando..." class="logo">
+  <p>Atualizando lista...</p>
+</div>
+
+<ul id="lista-alunos" class="li"></ul>
 
 <pre id="saida"></pre>
 
+<div id="qrcode-container">
+  <h3>QR Code de Acesso</h3>
+  <img id="qrcode-img" alt="QR Code para alunos">
+</div>
+
+<button class="qRB" onclick="toggleQrCode()">Mostrar/Esconder QR Code</button>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js">async function baixarExcel() {
+  const res = await fetch("http://localhost:3000/lista");
+  const data = await res.json();
+
+  if (!data.length) {
+    alert("Nenhum aluno presente ainda.");
+    return;
+  }
+
+  // cria planilha
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Presenças");
+
+  // gera e baixa
+  XLSX.writeFile(wb, "lista_de_presenca.xlsx");
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+async function baixarPDF() {
+  const res = await fetch("http://localhost:3000/lista");
+  const data = await res.json();
+
+  if (!data.length) {
+    alert("Nenhum aluno presente ainda.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text("Lista de Presença", 10, 10);
+  doc.setFontSize(10);
+
+  let y = 20;
+  data.forEach((a, i) => {
+    const linha = `${i + 1}. ${a.nome} | Matrícula: ${a.matricula} | ${a.horario} | ${a.grupo}`;
+    doc.text(linha, 10, y);
+    y += 8;
+  });
+
+  doc.save("lista_de_presenca.pdf");
+}</script>
+<div class="export-buttons">
+  <button onclick="baixarExcel()">📊 Baixar Excel</button>
+  <button onclick="baixarPDF()">📄 Baixar PDF</button>
+</div>
 </body>
 </html>
 
 <script>
-async function criarLista() {
-  const limite = document.getElementById("limite").value;
-  const duracao = document.getElementById("duracao").value;
-
-  const res = await fetch("http://localhost:3000/criar-lista", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ limite, duracao })
-  });
-
-  const data = await res.json();
-  document.getElementById("saida").innerText = data.msg;
+  const PIN = "2025"; // pode mudar se quiser
+const input = prompt("Digite o PIN do Professor:");
+if (input !== PIN) {
+  alert("PIN incorreto. Voltando à página inicial...");
+  window.location.href = "index.html";
 }
 
-async function fecharLista() {
-  const res = await fetch("http://localhost:3000/fechar-lista", { method: "POST" });
-  const data = await res.json();
-
-  document.getElementById("saida").innerText = data.msg;
-  document.getElementById("lista-alunos").innerHTML = "";
-}
-
-async function verLista() {
-  const res = await fetch("http://localhost:3000/lista");
-  const data = await res.json();
-  mostrarLista(data);
-}
-
-function mostrarLista(alunos) {
-  const ul = document.getElementById("lista-alunos");
-  ul.innerHTML = "";
-  alunos.forEach((aluno, i) => {
-    const li = document.createElement("li");
-    li.innerText = `${i + 1}. Nome: ${aluno.nome} | Hora: ${aluno.horario} | Local: (${aluno.latitude}, ${aluno.longitude}) | Envios: ${aluno.vezes}/2`;
-    ul.appendChild(li);
-  });
-}
-
-
+// animação de loading
+const logos = ["logos/EA1.png", "logos/EA2.png"];
+let index = 0;
+setInterval(() => {
+  const loaderLogo = document.getElementById("loader-logo");
+  if (loaderLogo) {
+    index = (index + 1) % logos.length;
+    loaderLogo.src = logos[index];
+  }
+}, 1500); // troca a cada 1.5s
 </script>
+<script>
+async function verLista() {
+    const loader = document.getElementById("loader");
+    const ul = document.getElementById("lista-alunos");
 
+    loader.style.display = "block"; // mostra loader
+    ul.innerHTML = "";
 
+    try {
+      const res = await fetch("http://localhost:3000/lista");
+      const data = await res.json();
+      mostrarLista(data);
+    } catch (error) {
+      console.error("Erro ao atualizar lista:", error);
+    } finally {
+      loader.style.display = "none"; // esconde loader
+    }
+  }
+
+  async function criarLista() {
+    const confirmar = confirm("Tem certeza que deseja criar uma nova lista? Isso vai apagar a lista atual.");
+    if (!confirmar) return;
+    const limite = document.getElementById("limite").value;
+    const duracao = document.getElementById("duracao").value;
+
+   // Captura a localização do professor
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const latitude = pos.coords.latitude;
+    const longitude = pos.coords.longitude;
+
+    const res = await fetch("http://localhost:3000/criar-lista", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ limite, duracao, latitude, longitude })
+    });
+
+    const data = await res.json();
+    document.getElementById("saida").innerText = data.msg;
+     if (data.qrCode) {
+      const img = document.getElementById("qrcode-img");
+  img.src = data.qrCode;
+  document.getElementById("qrcode-container").style.display = "block";
+    }
+
+  }, 
+  () => alert("Não foi possível obter a localização. Ative o GPS para criar a lista."));
+}
+    const saida = document.getElementById("saida");
+
+    if (data.qrCode) {
+      const img = document.getElementById("qrcode-img");
+  img.src = data.qrCode;
+  document.getElementById("qrcode-container").style.display = "block";
+    }
+
+  
+  function toggleQrCode() {
+  const container = document.getElementById("qrcode-container");
+  container.style.display = container.style.display === "none" ? "block" : "none";
+}
+
+  async function fecharLista() {
+    const res = await fetch("http://localhost:3000/fechar-lista", { method: "POST" });
+    const data = await res.json();
+
+    document.getElementById("saida").innerText = data.msg;
+    document.getElementById("lista-alunos").innerHTML = "";
+  }
+
+  function mostrarLista(alunos) {
+    const ul = document.getElementById("lista-alunos");
+    ul.innerHTML = "";
+    alunos.forEach((aluno, i) => {
+      const li = document.createElement("li");
+      li.innerText = `${i + 1}. Nome: ${aluno.nome} | Matrícula: ${aluno.matricula} | Hora: ${aluno.horario} | Local: ${aluno.grupo} | Envios: ${aluno.vezes}/2`;
+      ul.appendChild(li);
+    });
+  }
+</script>

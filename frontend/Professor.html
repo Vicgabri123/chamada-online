@@ -9,7 +9,7 @@
 <body>
   <h1>Chamada Online - Professor</h1>
 
- <div>
+ <div class="input-controls">
     <label for="limite">Número máximo de alunos:</label>
     <input type="number" id="limite" value="30" min="1" max="100">
 
@@ -34,7 +34,7 @@
   <!-- Loader de atualização -->
   <div id="loader">
   <img id="loader-logo" src="logos/EA1.png" alt="Carregando..." class="logo">
-  <p>Atualizando lista...</p>
+  <p class="AlunosPresentes">Atualizando lista...</p>
 </div>
 
 <ul id="lista-alunos" class="li"></ul>
@@ -48,7 +48,7 @@
 
 <button class="qRB" onclick="toggleQrCode()">Mostrar/Esconder QR Code</button>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js">async function baixarExcel() {
-  const res = await fetch("http://localhost:3000/lista");
+  const res = await fetch(`${baseURL}lista`);
   const data = await res.json();
 
   if (!data.length) {
@@ -67,7 +67,7 @@
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
 async function baixarPDF() {
-  const res = await fetch("http://localhost:3000/lista");
+  const res = await fetch(`${baseURL}lista`);
   const data = await res.json();
 
   if (!data.length) {
@@ -128,7 +128,7 @@ async function verLista() {
     ul.innerHTML = "";
 
     try {
-      const res = await fetch(`${baseURL}/lista`);
+      const res = await fetch(`${baseURL}lista`);
       const data = await res.json();
       mostrarLista(data);
     } catch (error) {
@@ -149,7 +149,7 @@ async function verLista() {
     const latitude = pos.coords.latitude;
     const longitude = pos.coords.longitude;
 
-    const res = await fetch(`${baseURL}/criar-lista`, {
+    const res = await fetch(`${baseURL}criar-lista`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ limite, duracao, latitude, longitude })
@@ -158,10 +158,11 @@ async function verLista() {
     const data = await res.json();
     document.getElementById("saida").innerText = data.msg;
      if (data.qrCode) {
-      const img = document.getElementById("qrcode-img");
+  const img = document.getElementById("qrcode-img");
   img.src = data.qrCode;
+  img.style.display = "block";
   document.getElementById("qrcode-container").style.display = "block";
-    }
+}
 
   }, 
   () => alert("Não foi possível obter a localização. Ative o GPS para criar a lista."));
@@ -181,7 +182,7 @@ async function verLista() {
 }
 
   async function fecharLista() {
-    const res = await fetch(`${baseURL}/fechar-lista`, { method: "POST" });
+    const res = await fetch(`${baseURL}fechar-lista`, { method: "POST" });
     const data = await res.json();
 
     document.getElementById("saida").innerText = data.msg;

@@ -126,6 +126,21 @@ input, select {
   width: 100%;
 }
 
+/* Adicionar classe para centralizar os inputs no container */
+.input-controls {
+  display: flex; /* Permite centralizar o conteúdo se a largura for ajustada */
+  flex-direction: column; /* Coloca label e input um abaixo do outro */
+  align-items: center; /* Centraliza horizontalmente o conteúdo da div */
+  margin-bottom: 1rem; /* Espaçamento abaixo dos inputs */
+}
+
+/* Os labels/inputs vão herdar a largura de 100% do container */
+.input-controls label {
+  width: 15rem; /* Garante que o label ocupe toda a largura */
+  margin-top: 0.5rem; /* Adiciona algum espaço acima do label */
+}
+
+
 #qrcode-container {
   background: #f9f9f9;
   border: 2px solid #ddd;

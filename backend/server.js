@@ -12,7 +12,11 @@ app.use(express.json());
 
 
 const corsOptions = {
-  origin: ["https://meuchamada.netlify.app/", "http://localhost:3000"], // substitui pelo domínio exato do teu Netlify
+  origin: [
+    "https://meuchamada.netlify.app",
+    "https://chamada-online.onrender.com",
+    "http://localhost:3000"
+  ], // substitui pelo domínio exato do teu Netlify
   methods: ["GET", "POST"],
   credentials: true
 };
@@ -59,7 +63,7 @@ app.post("/criar-lista", (req, res) => {
   referenciaSala = { latitude, longitude };
   const horario = new Date().toLocaleTimeString();
 
-  const alunoUrl = "https://meuchamada.netlify.app/";
+  const alunoUrl = "https://meuchamada.netlify.app/Aluno.html";
 
   QRCode.toDataURL(alunoUrl, (err, qrCodeData) => {
     if (err) {

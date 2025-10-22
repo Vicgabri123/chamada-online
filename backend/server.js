@@ -1,5 +1,5 @@
 const express = require("express");
-const cors = require("cors");
+
 const app = express();
 const QRCode = require("qrcode");
 const session = require("express-session");
@@ -11,10 +11,12 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "Baobhan_Sith";
 app.use(express.json());
 
 
-app.use(cors({
-  origin: FRONTEND_URL,
+const corsOptions = {
+  origin: ["https://meuchamada.netlify.app/", "http://localhost:3000"], // substitui pelo domínio exato do teu Netlify
+  methods: ["GET", "POST"],
   credentials: true
-}));
+};
+app.use(cors(corsOptions));
 
 app.use(session({
   secret: SESSION_SECRET,

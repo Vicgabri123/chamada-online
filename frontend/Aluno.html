@@ -27,7 +27,6 @@
   <img src="logos/A2(A).gif" alt="Decoração direita" class="side-img right">
 
 <script>
-  const baseURL = "https://chamada-online.onrender.com/";
 
 async function registrarPresenca() {
   const nome = document.getElementById("nome").value.trim();
@@ -89,7 +88,7 @@ async function registrarPresenca() {
     localStorage.setItem("deviceId", deviceId);
   }
 
-  const res = await fetch(`${baseURL}/presenca`, {
+  const res = await fetch(`https://chamada-online.onrender.com/presenca`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nome, matricula, latitude, longitude, horario, deviceId })

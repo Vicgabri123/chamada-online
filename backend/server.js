@@ -5,7 +5,7 @@ const QRCode = require("qrcode");
 const session = require("express-session");
 
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://meuchamada.netlify.app/";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://meuchamada.netlify.app";
 const SESSION_SECRET = process.env.SESSION_SECRET || "Baobhan_Sith";
 
 app.use(express.json());
@@ -59,7 +59,7 @@ app.post("/criar-lista", (req, res) => {
   referenciaSala = { latitude, longitude };
   const horario = new Date().toLocaleTimeString();
 
-  const alunoUrl = `${FRONTEND_URL}Aluno.html`;
+  const alunoUrl = `${FRONTEND_URL}/Aluno.html`;
 
   QRCode.toDataURL(alunoUrl, (err, qrCodeData) => {
     if (err) {

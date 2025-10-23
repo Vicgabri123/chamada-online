@@ -47,7 +47,9 @@
 </div>
 
 <button class="qRB" onclick="toggleQrCode()">Mostrar/Esconder QR Code</button>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js">async function baixarExcel() {
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script>
+async function baixarExcel() {
   const res = await fetch(`${baseURL}lista`);
   const data = await res.json();
 
@@ -65,7 +67,8 @@
   XLSX.writeFile(wb, "lista_de_presenca.xlsx");
 }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
 async function baixarPDF() {
   const res = await fetch(`${baseURL}lista`);
   const data = await res.json();

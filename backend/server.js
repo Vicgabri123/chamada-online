@@ -1,5 +1,5 @@
 const express = require("express");
-
+const cors = require("cors");
 const app = express();
 const QRCode = require("qrcode");
 const session = require("express-session");
@@ -10,17 +10,13 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "Baobhan_Sith";
 
 app.use(express.json());
 
-
-const corsOptions = {
-  origin: [
-    "https://meuchamada.netlify.app",
-    "https://chamada-online.onrender.com",
-    "http://localhost:3000"
-  ], // substitui pelo domínio exato do teu Netlify
+app.use(cors({
+  origin: [process.env.FRONTEND_URL || "http://localhost:5500", "https://chamada-online.onrender.com"],
   methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"],
   credentials: true
-};
-app.use(cors(corsOptions));
+}));
+
 
 app.use(session({
   secret: SESSION_SECRET,
@@ -63,7 +59,7 @@ app.post("/criar-lista", (req, res) => {
   referenciaSala = { latitude, longitude };
   const horario = new Date().toLocaleTimeString();
 
-  const alunoUrl = "https://meuchamada.netlify.app/Aluno.html";
+  const alunoUrl = `${FRONTEND_URL}Aluno.html`;
 
   QRCode.toDataURL(alunoUrl, (err, qrCodeData) => {
     if (err) {

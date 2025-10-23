@@ -50,7 +50,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script>
 async function baixarExcel() {
-  const res = await fetch(`${baseURL}lista`);
+  const res = await fetch(`${baseURL}/lista`);
   const data = await res.json();
 
   if (!data.length) {
@@ -70,7 +70,7 @@ async function baixarExcel() {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 async function baixarPDF() {
-  const res = await fetch(`${baseURL}lista`);
+  const res = await fetch(`${baseURL}/lista`);
   const data = await res.json();
 
   if (!data.length) {
@@ -121,7 +121,7 @@ setInterval(() => {
 </script>
 <script>
 
- const baseURL = "https://chamada-online.onrender.com/";
+ const baseURL = "https://chamada-online.onrender.com";
   
 async function verLista() {
     const loader = document.getElementById("loader");
@@ -131,7 +131,7 @@ async function verLista() {
     ul.innerHTML = "";
 
     try {
-      const res = await fetch(`${baseURL}lista`);
+      const res = await fetch(`${baseURL}/lista`);
       const data = await res.json();
       mostrarLista(data);
     } catch (error) {
@@ -152,7 +152,7 @@ async function verLista() {
     const latitude = pos.coords.latitude;
     const longitude = pos.coords.longitude;
 
-    const res = await fetch(`${baseURL}criar-lista`, {
+    const res = await fetch(`${baseURL}/criar-lista`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ limite, duracao, latitude, longitude })

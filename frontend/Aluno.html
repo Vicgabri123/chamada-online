@@ -89,7 +89,7 @@ async function registrarPresenca() {
     localStorage.setItem("deviceId", deviceId);
   }
 
-  const res = await fetch(`${baseURL}presenca`, {
+  const res = await fetch(`${baseURL}/presenca`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nome, matricula, latitude, longitude, horario, deviceId })

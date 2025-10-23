@@ -170,15 +170,7 @@ async function verLista() {
   }, 
   () => alert("Não foi possível obter a localização. Ative o GPS para criar a lista."));
 }
-    const saida = document.getElementById("saida");
-
-    if (data.qrCode) {
-      const img = document.getElementById("qrcode-img");
-  img.src = data.qrCode;
-  document.getElementById("qrcode-container").style.display = "block";
-    }
-
-  
+ 
   function toggleQrCode() {
   const container = document.getElementById("qrcode-container");
   container.style.display = container.style.display === "none" ? "block" : "none";

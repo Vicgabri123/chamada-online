@@ -68,8 +68,9 @@ app.post("/criar-lista", (req, res) => {
       
     }
 
-  res.json({ msg: `Lista criada com limite de ${limite} alunos e duração de ${duracao} horas.` ,
-  qrCode: qrCodeData});
+  res.json({ 
+    msg: `Lista criada com limite de ${limite} alunos e duração de ${duracao} horas.` ,
+    qrCode: qrCodeData});
   
 });
 });

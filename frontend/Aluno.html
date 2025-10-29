@@ -28,6 +28,8 @@
 
 <script>
 
+const API_URL = "https://chamada-online.onrender.com";
+
 async function registrarPresenca() {
   const nome = document.getElementById("nome").value.trim();
   const matricula = document.getElementById("matricula").value.trim();
@@ -88,7 +90,7 @@ async function registrarPresenca() {
     localStorage.setItem("deviceId", deviceId);
   }
 
-  const res = await fetch(`https://chamada-online.onrender.com/presenca`, {
+  const res = await fetch(`${API_URL}/presenca`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nome, matricula, latitude, longitude, horario, deviceId })

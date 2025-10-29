@@ -11,7 +11,7 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "Baobhan_Sith";
 app.use(express.json());
 
 app.use(cors({
-  origin: [process.env.FRONTEND_URL || "http://localhost:5500", "https://chamada-online.onrender.com"],
+  origin: [process.env.FRONTEND_URL || "*"],
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"],
   credentials: true

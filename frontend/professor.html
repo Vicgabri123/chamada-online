@@ -139,6 +139,14 @@ else {
 }
 
 console.log("Backend conectado em:", API_URL);
+
+  window.addEventListener("load", () => {
+  const ultimoQRCode = localStorage.getItem("ultimoQRCode");
+  if (ultimoQRCode) {
+    const img = document.getElementById("qrcode-img");
+    img.src = ultimoQRCode;
+    img.style.display = "block";
+    document.getElementById("qrcode-container").style.display = "block";
 async function verLista() {
     const loader = document.getElementById("loader");
     const ul = document.getElementById("lista-alunos");
@@ -181,6 +189,9 @@ async function verLista() {
   img.src = data.qrCode;
   img.style.display = "block";
   document.getElementById("qrcode-container").style.display = "block";
+
+  localStorage.setItem("ultimoQRCode", data.qrCode);
+  
 }
 
   }, 

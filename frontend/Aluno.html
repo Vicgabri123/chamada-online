@@ -28,8 +28,23 @@
 
 <script>
 
-const API_URL = "https://chamada-online.onrender.com";
+// Detecta o domínio atual e ajusta automaticamente o backend
+let API_URL;
 
+// Se estiver rodando localmente (localhost ou 127.0.0.1), usa o backend local
+if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+  API_URL = "http://localhost:3000";
+} 
+// Se for Tunnelmole (contém .tunnelmole.net)
+else if (window.location.hostname.includes("tunnelmole.net")) {
+  API_URL = `https://${window.location.hostname}`;
+} 
+// Se for Render ou outro domínio público, detecta automaticamente o mesmo host base
+else {
+  API_URL = "https://chamada-online.onrender.com"; // seu domínio fixo do backend
+}
+
+console.log("Backend conectado em:", API_URL);
 async function registrarPresenca() {
   const nome = document.getElementById("nome").value.trim();
   const matricula = document.getElementById("matricula").value.trim();

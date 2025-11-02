@@ -2,34 +2,15 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const QRCode = require("qrcode");
-const session = require("express-session");
+const path = require("path");
 
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://meuchamada.netlify.app";
-const SESSION_SECRET = process.env.SESSION_SECRET || "Baobhan_Sith";
-
+// Middleware
+app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "../frontend"))); // 👈 Serve todos os arquivos da pasta frontend
 
-app.use(cors({
-  origin: [process.env.FRONTEND_URL || "*"],
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"],
-  credentials: true
-}));
-
-
-app.use(session({
-  secret: SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: true,      // requer HTTPS (Render fornece HTTPS)
-    sameSite: "none",  // necessário para cookies cross-site
-    maxAge: 24*60*60*1000
-  }
-}));
-
-app.use(express.static("../Frontend"));
+const FRONTEND_URL = "http://localhost:3000";
 
 let listaAberta = false;
 let limite = 0;
@@ -59,7 +40,7 @@ app.post("/criar-lista", (req, res) => {
   referenciaSala = { latitude, longitude };
   const horario = new Date().toLocaleTimeString();
 
-  const alunoUrl = `${FRONTEND_URL}/Aluno.html`;
+  const alunoUrl = `${req.protocol}://${req.get("host")}/aluno.html`;
 
   QRCode.toDataURL(alunoUrl, (err, qrCodeData) => {
     if (err) {
@@ -149,7 +130,12 @@ app.get("/lista", (req, res) => {
   res.json(presencas);
 });
 
-app.listen(3000, () => console.log("http://localhost:3000/"));
+app.get("/",(req, res) =>{
+  res.sendFile(path.join(__dirname, "../frontend/index.html"));;
+}
+)
+
+app.listen(3000, () => console.log("Servidor rodando na porta 3000 http://localhost:3000/"));
 
 // Nota: Use Node.js para rodar este servidor. Comando: node backend/Server.js
 // Certifique-se de ter o Express instalado: npm install express cors

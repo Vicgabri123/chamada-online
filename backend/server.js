@@ -100,7 +100,7 @@ app.post("/presenca", (req, res) => {
     longitude
   );
   if (distancia <= 100) {
-    grupo = "Sala";
+    grupo = "Interno";
   }
 
   let aluno = presencas.find(a => a.matricula === matricula);

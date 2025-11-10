@@ -38,7 +38,7 @@ app.post("/criar-lista", (req, res) => {
   listaAberta = true;
   expiresAt = Date.now() + (parseInt(duracao) * 60 * 60 * 1000);
   referenciaSala = { latitude, longitude };
-  const horario = new Date().toLocaleTimeString();
+  const horario = new Date().toLocaleTimeString("pt-BR", { timeZone: "America/Belem" });
 
   const alunoUrl = `${req.protocol}://${req.get("host")}/aluno.html`;
 

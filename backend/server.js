@@ -51,9 +51,10 @@ app.post("/criar-lista", (req, res) => {
 
   res.json({ 
     msg: `Lista criada com limite de ${limite} alunos e duração de ${duracao} horas.` ,
-    qrCode: qrCodeData});
-  
-});
+    qrCode: qrCodeData,
+    referenciaSala
+    });
+  });
 });
 // Fechar lista
 app.post("/fechar-lista", (req, res) => {

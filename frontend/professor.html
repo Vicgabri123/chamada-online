@@ -47,52 +47,7 @@
 </div>
 
 <button class="qRB" onclick="toggleQrCode()">Mostrar/Esconder QR Code</button>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script>
-async function baixarExcel() {
-  const res = await fetch(`${API_URL}/lista`);
-  const data = await res.json();
 
-  if (!data.length) {
-    alert("Nenhum aluno presente ainda.");
-    return;
-  }
-
-  // cria planilha
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Presenças");
-
-  // gera e baixa
-  XLSX.writeFile(wb, "lista_de_presenca.xlsx");
-}
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-async function baixarPDF() {
-  const res = await fetch(`${API_URL}/lista`);
-  const data = await res.json();
-
-  if (!data.length) {
-    alert("Nenhum aluno presente ainda.");
-    return;
-  }
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFontSize(14);
-  doc.text("Lista de Presença", 10, 10);
-  doc.setFontSize(10);
-
-  let y = 20;
-  data.forEach((a, i) => {
-    const linha = `${i + 1}. ${a.nome} | Matrícula: ${a.matricula} | ${a.horario} | ${a.grupo}`;
-    doc.text(linha, 10, y);
-    y += 8;
-  });
-
-  doc.save("lista_de_presenca.pdf");
-}</script>
 <div class="export-buttons">
   <button onclick="baixarExcel()">📊 Baixar Excel</button>
   <button onclick="baixarPDF()">📄 Baixar PDF</button>

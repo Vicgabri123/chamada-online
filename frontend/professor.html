@@ -97,127 +97,15 @@ async function baixarPDF() {
   <button onclick="baixarExcel()">📊 Baixar Excel</button>
   <button onclick="baixarPDF()">📄 Baixar PDF</button>
 </div>
+    <!-- Bibliotecas -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Config do PIN -->
+  <script src="config.js"></script>
+
+  <!-- Seu arquivo JS -->
+  <script src="professor.js"></script>
 </body>
 </html>
-<script src="config.js"></script>
-<script>
-  
-const PIN = window.CONFIG.PIN; // pode mudar se quiser
-const input = prompt("Digite o PIN do Professor:");
-if (input !== PIN) {
-  alert("PIN incorreto. Voltando à página inicial...");
-  window.location.href = "index.html";
-}
 
-// animação de loading
-const logos = ["logos/EA1.png", "logos/EA2.png"];
-let index = 0;
-setInterval(() => {
-  const loaderLogo = document.getElementById("loader-logo");
-  if (loaderLogo) {
-    index = (index + 1) % logos.length;
-    loaderLogo.src = logos[index];
-  }
-}, 1500); // troca a cada 1.5s
-</script>
-<script>
-
-// Detecta o domínio atual e ajusta automaticamente o backend
-let API_URL;
-
-// Se estiver rodando localmente (localhost ou 127.0.0.1), usa o backend local
-if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-  API_URL = "http://localhost:3000";
-} 
-// Se for Tunnelmole (contém .tunnelmole.net)
-else if (window.location.hostname.includes("tunnelmole.net")) {
-  API_URL = `https://${window.location.hostname}`;
-} 
-// Se for Render ou outro domínio público, detecta automaticamente o mesmo host base
-else {
-  API_URL = "https://chamada-online.onrender.com"; // seu domínio fixo do backend
-}
-
-console.log("Backend conectado em:", API_URL);
-
-  window.addEventListener("load", () => {
-  const ultimoQRCode = localStorage.getItem("ultimoQRCode");
-  if (ultimoQRCode) {
-    const img = document.getElementById("qrcode-img");
-    img.src = ultimoQRCode;
-    img.style.display = "block";
-    document.getElementById("qrcode-container").style.display = "block";
-async function verLista() {
-    const loader = document.getElementById("loader");
-    const ul = document.getElementById("lista-alunos");
-
-    loader.style.display = "block"; // mostra loader
-    ul.innerHTML = "";
-
-    try {
-      const res = await fetch(`${API_URL}/lista`);
-      const data = await res.json();
-      mostrarLista(data);
-    } catch (error) {
-      console.error("Erro ao atualizar lista:", error);
-    } finally {
-      loader.style.display = "none"; // esconde loader
-    }
-  }
-
-  async function criarLista() {
-    const confirmar = confirm("Tem certeza que deseja criar uma nova lista? Isso vai apagar a lista atual.");
-    if (!confirmar) return;
-    const limite = document.getElementById("limite").value;
-    const duracao = document.getElementById("duracao").value;
-
-   // Captura a localização do professor
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    const latitude = pos.coords.latitude;
-    const longitude = pos.coords.longitude;
-
-    const res = await fetch(`${API_URL}/criar-lista`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ limite, duracao, latitude, longitude })
-    });
-
-    const data = await res.json();
-    document.getElementById("saida").innerText = data.msg;
-     if (data.qrCode) {
-  const img = document.getElementById("qrcode-img");
-  img.src = data.qrCode;
-  img.style.display = "block";
-  document.getElementById("qrcode-container").style.display = "block";
-
-  localStorage.setItem("ultimoQRCode", data.qrCode);
-  
-}
-
-  }, 
-  () => alert("Não foi possível obter a localização. Ative o GPS para criar a lista."));
-}
- 
-  function toggleQrCode() {
-  const container = document.getElementById("qrcode-container");
-  container.style.display = container.style.display === "none" ? "block" : "none";
-}
-
-  async function fecharLista() {
-    const res = await fetch(`${API_URL}/fechar-lista`, { method: "POST" });
-    const data = await res.json();
-
-    document.getElementById("saida").innerText = data.msg;
-    document.getElementById("lista-alunos").innerHTML = "";
-  }
-
-  function mostrarLista(alunos) {
-    const ul = document.getElementById("lista-alunos");
-    ul.innerHTML = "";
-    alunos.forEach((aluno, i) => {
-      const li = document.createElement("li");
-      li.innerText = `${i + 1}. Nome: ${aluno.nome} | Matrícula: ${aluno.matricula} | Hora: ${aluno.horario} | Local: ${aluno.grupo} | Envios: ${aluno.vezes}/2`;
-      ul.appendChild(li);
-    });
-  }
-</script>

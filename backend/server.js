@@ -98,7 +98,7 @@ app.post("/presenca", (req, res) => {
     latitude,
     longitude
   );
-  if (distancia <= 500) {
+  if (distancia <= 100) {
     grupo = "Sala";
   }
 

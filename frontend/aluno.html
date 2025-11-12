@@ -15,8 +15,9 @@
       <input id="matricula" type="text" placeholder="Matrícula">
     </div>
     <button id="btn-presenca" onclick="registrarPresenca()">Enviar Presença</button>
+    <input id="justificativa" type="text" placeholder="Justifique (caso o GPS falhe)" style="display:none;">
     <div id="saida"></div>
-     
+
     <!-- Mensagem de confirmação -->
 <div id="confirmacao" class="confirma">
   <img src="logos/A1.png" alt="Presença confirmada" class="side-img">
@@ -45,7 +46,76 @@ else {
 }
 
 console.log("Backend conectado em:", API_URL);
+
+
+async function obterLocalizacao() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject("Seu navegador não suporta geolocalização.");
+      return;
+    }
+
+    const timeout = setTimeout(() => reject("Tempo limite excedido."), 10000);
+
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        clearTimeout(timeout);
+        resolve(pos);
+      },
+      err => {
+        clearTimeout(timeout);
+        console.warn("Erro de alta precisão:", err);
+        // tenta novamente com menor precisão
+        navigator.geolocation.getCurrentPosition(
+          pos2 => resolve(pos2),
+          () => reject("Não foi possível obter localização. Ative o GPS e tente novamente."),
+          { enableHighAccuracy: false, timeout: 8000 }
+        );
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  });
+}
+  let tentativasFalhas = 0;
+  
 async function registrarPresenca() {
+  const botao = document.getElementById("btnEnviar");
+  botao.disabled = true;
+  botao.innerText = "⏳ Enviando...";
+  
+  let posicao = await obterLocalizacao().catch(erro => {
+    tentativasFalhas++;
+    alert(erro);
+    return null;
+  });
+  let latitude = null, longitude = null;
+  if (posicao) {
+    latitude = posicao.coords.latitude;
+    longitude = posicao.coords.longitude;
+  } else if (tentativasFalhas >= 2) {
+    // Exibir campo de justificativa
+    document.getElementById("justificativa").style.display = "block";
+    const justificativa = prompt("Localização falhou 2 vezes. Informe o motivo:");
+     const nome = document.getElementById("nome").value;
+    const matricula = document.getElementById("matricula").value;
+
+    const res = await fetch(`${API_URL}/presenca`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome, matricula, justificativa, horario, deviceId })
+    });
+    const data = await res.json();
+    alert(data.msg);
+    botao.disabled = false;
+    botao.innerText = "✅ Enviar Presença";
+    return;
+  } else {
+    botao.disabled = false;
+    botao.innerText = "✅ Enviar Presença";
+    return;
+  }
+
+  // se chegou aqui, GPS funcionou
   const nome = document.getElementById("nome").value.trim();
   const matricula = document.getElementById("matricula").value.trim();
   const botao = document.getElementById("btn-presenca");
@@ -55,15 +125,7 @@ async function registrarPresenca() {
     return;
   }
 
-  botao.disabled = true;
-  botao.style.backgroundColor = "#aaa";
-  botao.innerText = "Enviando...";
-  setTimeout(() => {
-      botao.disabled = false;
-      botao.style.backgroundColor = "#4CAF50";
-      botao.innerText = "Enviar Presença";
-    }, 3000); // espera 3 segundos antes de reativar
-
+  
   // tenta obter localização obrigatoriamente
   if (!navigator.geolocation) {
     alert("Seu navegador não suporta geolocalização!");
@@ -73,30 +135,17 @@ async function registrarPresenca() {
   let latitude, longitude;
 
   // tenta por até 10 segundos
-  const posicao = await new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject("Tempo limite excedido!"), 10000);
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        clearTimeout(timeout);
-        resolve(pos);
-      },
-      err => {
-        clearTimeout(timeout);
-        reject("Não foi possível obter localização. Ative o GPS e tente novamente.");
-      },
-      { enableHighAccuracy: true }
-    );
-  }).catch(erro => {
-    alert(erro);
-    return null;
+  const posicao = await obterLocalizacao().catch(erro => {
+  alert(erro);
+  return null;
   });
-
+  
   if (!posicao) return; // interrompe se não tiver localização
 
   latitude = posicao.coords.latitude;
   longitude = posicao.coords.longitude;
 
-  const horario = new Date().toLocaleTimeString("pt-BR", { timeZone: "America/Belem" });
+  const horario = new Date().toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
   // gera ou recupera um ID único para o dispositivo
   let deviceId = localStorage.getItem("deviceId");
@@ -132,4 +181,5 @@ async function registrarPresenca() {
     }, 5000);
   }
 }
+
 </script>

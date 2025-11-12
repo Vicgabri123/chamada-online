@@ -96,7 +96,7 @@ async function registrarPresenca() {
   latitude = posicao.coords.latitude;
   longitude = posicao.coords.longitude;
 
-  const horario = new Date().toLocaleTimeString();
+  const horario = new Date().toLocaleTimeString("pt-BR", { timeZone: "America/Belem" });
 
   // gera ou recupera um ID único para o dispositivo
   let deviceId = localStorage.getItem("deviceId");

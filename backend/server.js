@@ -18,6 +18,10 @@ let expiresAt = null;
 let presencas = []; // { nome, horario, latitude, longitude, vezes }
 let referenciaSala = null;
 
+console.log(`📍 Local referência: ${referenciaSala.latitude}, ${referenciaSala.longitude}`);
+console.log(`📍 Local aluno: ${latitude}, ${longitude}`);
+console.log(`📏 Distância calculada: ${distancia.toFixed(2)} metros`);
+
 function calcularDistancia(lat1, lon1, lat2, lon2) {
   const R = 6371e3; // raio da Terra em metros
   const rad = Math.PI / 180;
@@ -38,7 +42,7 @@ app.post("/criar-lista", (req, res) => {
   listaAberta = true;
   expiresAt = Date.now() + (parseInt(duracao) * 60 * 60 * 1000);
   referenciaSala = { latitude, longitude };
-  const horario = new Date().toLocaleTimeString("pt-BR", { timeZone: "America/Belem" });
+  const horario = new Date().toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
   const alunoUrl = `${req.protocol}://${req.get("host")}/aluno.html`;
 
@@ -85,7 +89,7 @@ app.post("/presenca", (req, res) => {
       nome,
       matricula,
       horario,
-      grupo: "Sem localização (Justificado)",
+      grupo: "Justificado",
       justificativa: req.body.justificativa,
       deviceId
     });

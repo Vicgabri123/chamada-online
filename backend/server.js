@@ -74,13 +74,23 @@ app.post("/presenca", (req, res) => {
     return res.json({ msg: "O tempo da lista acabou! Aguarde a próxima chamada." });
   }
 
-  const { nome, matricula, latitude, longitude, deviceId } = req.body;
+  const { nome, matricula, latitude, longitude, deviceId, justificativa } = req.body;
   if (!nome) return res.json({ msg: "Nome é obrigatório!" });
   if (!matricula) return res.json({ msg: "matricula é obrigatório!" });
   if (!deviceId) return res.json({ msg: "Identificador do dispositivo é obrigatório!" });
-  if (latitude == null || longitude == null) {
+  if (latitude == null || longitude == null) && !req.body.justificativa) {
     return res.json({ msg: "Localização não encontrada. Ative seu GPS." });
   }
+  if (req.body.justificativa) {
+  presencas.push({
+    nome,
+    matricula,
+    horario,
+    grupo: "Sem localização (Justificado)",
+    justificativa: req.body.justificativa
+  });
+  return res.json({ msg: `Presença registrada com justificativa às ${horario}` });
+}
 
     // Check if this device has already registered
   let deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
@@ -114,7 +124,7 @@ app.post("/presenca", (req, res) => {
     if (presencas.length >= limite) {
       return res.json({ msg: "Limite de alunos atingido." });
     }
-    aluno = { nome, matricula, horario, vezes: 0, deviceId, grupo };
+    aluno = { nome, matricula, horario, vezes: 0, deviceId, grupo, justificativa };
     presencas.push(aluno);
   }
 

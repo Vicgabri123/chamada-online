@@ -66,7 +66,10 @@ app.post("/fechar-lista", (req, res) => {
 
 // Registrar presença
 app.post("/presenca", (req, res) => {
-  const horario = new Date().toLocaleTimeString();
+  const horario = new Date().toLocaleTimeString(("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  hour12: false
+});
   if (!listaAberta) {
     return res.json({ msg: "Nenhuma lista aberta no momento." });
   }
@@ -103,9 +106,6 @@ app.post("/presenca", (req, res) => {
     return res.json({ msg: "Este dispositivo já registrou presença." });
   }
    
-  if (!referenciaSala) {
-    referenciaSala = { latitude, longitude };
-  }
 
   let grupo = "Externo";
   const distancia = calcularDistancia(

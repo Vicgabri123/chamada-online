@@ -114,7 +114,7 @@ app.post("/presenca", (req, res) => {
     latitude,
     longitude
   );
-  if (distancia <= 100) {
+  if (distancia <= 2000) {
     grupo = "Interno";
   }
 
@@ -152,9 +152,7 @@ app.get("/",(req, res) =>{
 )
 
 app.listen(3000, () => console.log("Servidor rodando na porta 3000 http://localhost:3000/"));
-console.log(`📍 Local referência: ${referenciaSala.latitude}, ${referenciaSala.longitude}`);
-console.log(`📍 Local aluno: ${latitude}, ${longitude}`);
-console.log(`📏 Distância calculada: ${distancia.toFixed(2)} metros`);
+
 
 // Nota: Use Node.js para rodar este servidor. Comando: node backend/Server.js
 // Certifique-se de ter o Express instalado: npm install express cors

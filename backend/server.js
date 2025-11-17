@@ -18,9 +18,7 @@ let expiresAt = null;
 let presencas = []; // { nome, horario, latitude, longitude, vezes }
 let referenciaSala = null;
 
-console.log(`📍 Local referência: ${referenciaSala.latitude}, ${referenciaSala.longitude}`);
-console.log(`📍 Local aluno: ${latitude}, ${longitude}`);
-console.log(`📏 Distância calculada: ${distancia.toFixed(2)} metros`);
+
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
   const R = 6371e3; // raio da Terra em metros
@@ -154,6 +152,9 @@ app.get("/",(req, res) =>{
 )
 
 app.listen(3000, () => console.log("Servidor rodando na porta 3000 http://localhost:3000/"));
+console.log(`📍 Local referência: ${referenciaSala.latitude}, ${referenciaSala.longitude}`);
+console.log(`📍 Local aluno: ${latitude}, ${longitude}`);
+console.log(`📏 Distância calculada: ${distancia.toFixed(2)} metros`);
 
 // Nota: Use Node.js para rodar este servidor. Comando: node backend/Server.js
 // Certifique-se de ter o Express instalado: npm install express cors

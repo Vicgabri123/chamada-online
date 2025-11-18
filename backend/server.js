@@ -48,8 +48,7 @@ app.post("/criar-lista", (req, res) => {
     if (err) {
       console.error("Erro ao gerar QR Code", err);
       return res.status(500).json({ msg: "Erro ao gerar QR Code" });
-      
-    }
+      }
 
   res.json({ 
     msg: `Lista criada com limite de ${limite} alunos e duração de ${duracao} horas.` ,
@@ -66,7 +65,7 @@ app.post("/fechar-lista", (req, res) => {
 
 // Registrar presença
 app.post("/presenca", (req, res) => {
-  const horario = new Date().toLocaleTimeString(("pt-BR", {
+  const horario = new Date().toLocaleTimeString("pt-BR", {
   timeZone: "America/Sao_Paulo",
   hour12: false
 });

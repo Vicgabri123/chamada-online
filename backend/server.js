@@ -82,6 +82,12 @@ app.post("/presenca", (req, res) => {
   if (!nome) return res.json({ msg: "Nome é obrigatório!" });
   if (!matricula) return res.json({ msg: "matricula é obrigatório!" });
   if (!deviceId) return res.json({ msg: "Identificador do dispositivo é obrigatório!" });
+
+    let deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
+  if (deviceAlreadyUsed) {
+    return res.json({ msg: "Este dispositivo já registrou presença." });
+  }
+   
   // Only allow justification if location is missing
   if ((latitude == null || longitude == null)) {
   if (req.body.justificativa) {
@@ -100,11 +106,7 @@ app.post("/presenca", (req, res) => {
 }
 
     // Check if this device has already registered
-  let deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
-  if (deviceAlreadyUsed) {
-    return res.json({ msg: "Este dispositivo já registrou presença." });
-  }
-   
+
 
   let grupo = "Externo";
   const distancia = calcularDistancia(

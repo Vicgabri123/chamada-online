@@ -88,10 +88,12 @@ async function registrarPresenca() {
     latitude = posicao.coords.latitude;
     longitude = posicao.coords.longitude;
     justificativaInput.style.display = "none";
+    tentativasFalhas = 0; // Zera a contagem de falhas após sucesso de GPS
+    justificativa = "";
   } else if (tentativasFalhas >= 2) {
     // se falhar duas vezes, solicita justificativa
     justificativaInput.style.display = "block";
-    justificativa = prompt("Localização falhou 2 vezes. Informe o motivo:") || "Sem justificativa";
+    justificativa = justificativaInput.value.trim() || "Sem justificativa";
   } else {
     alert("Erro ao obter localização. Tente novamente.");
     botao.disabled = false;

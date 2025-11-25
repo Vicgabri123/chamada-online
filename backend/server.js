@@ -113,9 +113,11 @@ app.post("/presenca", (req, res) => {
     });
     return res.json({ msg: `Presença registrada com justificativa às ${horario}` });
   } else {
-    return res.json({ msg: "Localização não encontrada. Ative seu GPS ou forneça uma justificativa." });
+    return res.json({ 
+      msg: "Localização não encontrada. Ative seu GPS ou forneça uma justificativa." 
+    });
   }
-}
+    }
 
     // Check if this device has already registered
 
@@ -152,7 +154,6 @@ app.post("/presenca", (req, res) => {
 
   aluno.vezes++;
   res.json({ msg: `${nome} ${matricula} registrado com sucesso às ${horario} | Grupo: ${grupo} (${aluno.vezes}/2)` });
-});
 
 // Rota para o professor ver a lista
 app.get("/lista", (req, res) => {
@@ -160,9 +161,8 @@ app.get("/lista", (req, res) => {
 });
 
 app.get("/",(req, res) =>{
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));;
-}
-)
+  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+});
 
 app.listen(3000, () => console.log("Servidor rodando na porta 3000 http://localhost:3000/"));
 

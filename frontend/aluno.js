@@ -53,7 +53,7 @@ async function obterLocalizacao() {
 // ============================
 // ✍️ Função: Registrar Presença
 // ============================
-let tentativasFalhas = 0;
+let tentativasFalhas = Number(localStorage.getItem("falhasGPS")) || 0;
 
 async function registrarPresenca() {
   const botao = document.getElementById("btn-presenca");
@@ -76,6 +76,7 @@ async function registrarPresenca() {
   // tenta obter localização
   let posicao = await obterLocalizacao().catch(() => {
     tentativasFalhas++;
+    localStorage.setItem("falhasGPS", tentativasFalhas);
     return null;
   });
 
@@ -145,6 +146,7 @@ async function registrarPresenca() {
   if (data.msg.includes("registrado com sucesso")) {
     const confirmacao = document.getElementById("confirmacao");
     const mensagem = document.getElementById("mensagem-confirmacao");
+    localStorage.removeItem("falhasGPS");
 
     mensagem.textContent = `Presença anotada às ${horario} de ${nome}.`;
     confirmacao.style.display = "block";

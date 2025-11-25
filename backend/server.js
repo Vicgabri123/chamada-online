@@ -127,7 +127,7 @@ app.post("/presenca", (req, res) => {
     latitude,
     longitude
   );
-  if (distancia >= 1000 ) {
+  if (distancia >= 2500 ) {
     grupo = "Externo";
   }
 

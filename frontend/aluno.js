@@ -94,10 +94,16 @@ async function registrarPresenca() {
     // se falhar duas vezes, solicita justificativa
     justificativaInput.style.display = "block";
     justificativa = justificativaInput.value.trim() || "Sem justificativa";
+    
   } else {
     alert("Erro ao obter localização. Tente novamente.");
     botao.disabled = false;
     botao.innerText = "Enviar Presença";
+    let deviceId = localStorage.getItem("deviceId");
+    if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem("deviceId", deviceId);
+  }
     return;
   }
 

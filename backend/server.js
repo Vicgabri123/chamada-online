@@ -1,62 +1,62 @@
 const express = require("express");
 const cors = require("cors");
-const app = express();
 const QRCode = require("qrcode");
-const path = require("path");
+const app = express();
 
-
-// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "../frontend"))); // 👈 Serve todos os arquivos da pasta frontend
-
-const FRONTEND_URL = "http://localhost:3000";
 
 let listaAberta = false;
-let limite = 0;
-let expiresAt = null;
-let presencas = []; // { nome, horario, latitude, longitude, vezes }
+let presencas = [];
 let referenciaSala = null;
+let limiteAlunos = 0;
+let duracaoHoras = 0;
 
-
-
+// Função para calcular distância usando fórmula de haversine
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-  const R = 6371e3; // raio da Terra em metros
+  const R = 6371e3;
   const rad = Math.PI / 180;
   const dLat = (lat2 - lat1) * rad;
   const dLon = (lon2 - lon1) * rad;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c; // distância em metros
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * rad) *
+      Math.cos(lat2 * rad) *
+      Math.sin(dLon / 2) ** 2;
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
 }
 
 // Criar lista
-app.post("/criar-lista", (req, res) => {
-  const { limite: limiteInput, duracao, latitude,longitude } = req.body;
-  limite = parseInt(limiteInput);
-  presencas = [];
+app.post("/criar-lista", async (req, res) => {
+  const { limite, duracao, latitude, longitude } = req.body;
+
+  if (!latitude || !longitude) {
+    return res
+      .status(400)
+      .json({ msg: "Localização da sala não recebida." });
+  }
+
   listaAberta = true;
-  expiresAt = Date.now() + (parseInt(duracao) * 60 * 60 * 1000);
+  presencas = [];
+  limiteAlunos = Number(limite);
+  duracaoHoras = Number(duracao);
+
   referenciaSala = { latitude, longitude };
-  const horario = new Date().toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
-  const alunoUrl = `${req.protocol}://${req.get("host")}/aluno.html`;
+  const qrCodeData = await QRCode.toDataURL(
+    "https://sua-url.com/aluno.html"
+  );
 
-  QRCode.toDataURL(alunoUrl, (err, qrCodeData) => {
-    if (err) {
-      console.error("Erro ao gerar QR Code", err);
-      return res.status(500).json({ msg: "Erro ao gerar QR Code" });
-      }
-
-  res.json({ 
-    msg: `Lista criada com limite de ${limite} alunos e duração de ${duracao} horas.` ,
+  res.json({
+    msg: `Lista criada com limite de ${limiteAlunos} alunos e duração de ${duracaoHoras} horas.`,
     qrCode: qrCodeData,
-    referenciaSala
-    });
+    referenciaSala,
   });
 });
+
 // Fechar lista
 app.post("/fechar-lista", (req, res) => {
   listaAberta = false;
@@ -66,109 +66,109 @@ app.post("/fechar-lista", (req, res) => {
 // Registrar presença
 app.post("/presenca", (req, res) => {
   const horario = new Date().toLocaleTimeString("pt-BR", {
-  timeZone: "America/Sao_Paulo",
-  hour12: false
-});
-  if (!listaAberta) {
-    return res.json({ msg: "Nenhuma lista aberta no momento." });
-  }
+    timeZone: "America/Sao_Paulo",
+    hour12: false,
+  });
 
-  if (Date.now() > expiresAt) {
-    listaAberta = false;
-    return res.json({ msg: "O tempo da lista acabou! Aguarde a próxima chamada." });
-  }
+  const {
+    nome,
+    matricula,
+    latitude,
+    longitude,
+    deviceId,
+    justificativa,
+  } = req.body;
 
-  const { nome, matricula, latitude, longitude, deviceId, justificativa } = req.body;
   if (!nome) return res.json({ msg: "Nome é obrigatório!" });
-  if (!matricula) return res.json({ msg: "matricula é obrigatório!" });
-  if (!deviceId) return res.json({ msg: "Identificador do dispositivo é obrigatório!" });
+  if (!matricula)
+    return res.json({ msg: "Matrícula é obrigatória!" });
+  if (!deviceId)
+    return res.json({
+      msg: "Identificador do dispositivo é obrigatório!",
+    });
 
-    let deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
-  if (deviceAlreadyUsed) {
-    return res.json({ msg: "Este dispositivo já registrou presença." });
-  }
-   
-  // Only allow justification if location is missing
-  if ((latitude == null || longitude == null)) { 
-    
-  // Se o aluno já mandou justificativa e deviceId existe → REGISTRAR UMA VEZ
+  // Se NÃO tem localização → exigir justificativa
+  if (latitude == null || longitude == null) {
     if (justificativa && justificativa.trim() !== "") {
+      if (presencas.some((a) => a.deviceId === deviceId)) {
+        return res.json({
+          msg: "Este dispositivo já registrou presença.",
+          exigirJustificativa: false,
+        });
+      }
 
-        // impedir duplicidade pelo device
-        if (presencas.some(a => a.deviceId === deviceId)) {
-            return res.json({
-                msg: "Este dispositivo já registrou presença.",
-                exigirJustificativa: false
-            });
-        }
-      
-  if (req.body.justificativa) {
-    presencas.push({
-      nome,
-      matricula,
-      horario,
-      grupo: "Justificado",
-      justificativa: req.body.justificativa,
-      deviceId
-    });
-    return res.json({ msg: `Presença registrada com justificativa às ${horario}` });
-  } else {
-    return res.json({ 
-      msg: "Localização não encontrada. Ative seu GPS ou forneça uma justificativa." 
-    });
-  }
+      presencas.push({
+        nome,
+        matricula,
+        horario,
+        grupo: "Justificado",
+        justificativa,
+        deviceId,
+      });
+
+      return res.json({
+        msg: `Presença registrada com justificativa às ${horario}`,
+        exigirJustificativa: false,
+      });
     }
 
-    // Check if this device has already registered
+    return res.json({
+      msg: "Localização não encontrada. Forneça uma justificativa.",
+      exigirJustificativa: true,
+    });
+  }
 
-
-  let grupo = "Interno";
+  // COM localização → calcular distância
   const distancia = calcularDistancia(
     referenciaSala.latitude,
     referenciaSala.longitude,
     latitude,
     longitude
   );
-  if (distancia >= 2500 ) {
+
+  let grupo = "Interno";
+  if (distancia >= 800) {
     grupo = "Externo";
   }
 
-  let aluno = presencas.find(a => a.matricula === matricula);
-  if (aluno) {
-    return res.json({ msg: `Matrícula ${matricula} já registrou presença.` });
+  // Evitar duplicidade
+  if (presencas.some((a) => a.deviceId === deviceId)) {
+    return res.json({
+      msg: "Este dispositivo já registrou presença.",
+      exigirJustificativa: false,
+    });
   }
 
+  presencas.push({
+    nome,
+    matricula,
+    horario,
+    grupo,
+    distancia,
+    latitude,
+    longitude,
+    deviceId,
+  });
 
-
-  if (!aluno) {
-    if (presencas.length >= limite) {
-      return res.json({ msg: "Limite de alunos atingido." });
-    }
-    aluno = { nome, matricula, horario, vezes: 0, deviceId, grupo, justificativa };
-    presencas.push(aluno);
-  }
-
-  if (aluno.vezes >= 2) {
-    return res.json({ msg: "Você já registrou presença 2 vezes." });
-  }
-
-  aluno.vezes++;
-  res.json({ msg: `${nome} ${matricula} registrado com sucesso às ${horario} | Grupo: ${grupo} (${aluno.vezes}/2)` });
-
-// Rota para o professor ver a lista
-app.get("/lista", (req, res) => {
-  res.json(presencas);
+  res.json({
+    msg: `Presença registrada às ${horario}`,
+    distancia,
+    grupo,
+  });
 });
 
-app.get("/",(req, res) =>{
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+// Estado da lista
+app.get("/status-lista", (req, res) => {
+  res.json({
+    listaAberta,
+    limiteAlunos,
+    duracaoHoras,
+    referenciaSala,
+    presencas,
+  });
 });
 
-app.listen(3000, () => console.log("Servidor rodando na porta 3000 http://localhost:3000/"));
-
-
-// Nota: Use Node.js para rodar este servidor. Comando: node backend/Server.js
-// Certifique-se de ter o Express instalado: npm install express cors
-// Acesse o frontend em: http://localhost:3000/Professor.html
-// Acesse o frontend do aluno em: http://localhost:3000/Aluno.html
-// Use ferramentas como Postman ou Insomnia para testar as rotas POST.no
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () =>
+  console.log(`Servidor rodando na porta ${PORT}`)
+);

@@ -88,31 +88,22 @@ app.post("/presenca", (req, res) => {
     return res.json({ msg: "Este dispositivo já registrou presença." });
   }
    
-  // Only allow justification if location is missing
+  
+ // Only allow justification if location is missing
   if ((latitude == null || longitude == null)) {
-    if (justificativa && justificativa.trim() !== "") {
-      if (presencas.some(a => a.deviceId === deviceId)) {
-            return res.json({
-                msg: "Este dispositivo já registrou presença.",
-                exigirJustificativa: false
-            });
-        }
-      presencas.push({
+  if (req.body.justificativa) {
+    presencas.push({
       nome,
       matricula,
       horario,
       grupo: "Justificado",
-      justificativa,
+      justificativa: req.body.justificativa,
       deviceId
     });
-    return res.json({ msg: `Presença registrada com justificativa às ${horario}` 
-                     exigirJustificativa: false
-    });
-  } 
-    return res.json({ msg: "Localização não encontrada. Ative seu GPS ou forneça uma justificativa." 
-                    exigirJustificativa: true
-});
-}
+    return res.json({ msg: `Presença registrada com justificativa às ${horario}` });
+  } else {
+    return res.json({ msg: "Localização não encontrada. Ative seu GPS ou forneça uma justificativa." });
+  }
 }
 
     // Check if this device has already registered

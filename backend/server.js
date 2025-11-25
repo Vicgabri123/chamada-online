@@ -120,15 +120,15 @@ app.post("/presenca", (req, res) => {
     // Check if this device has already registered
 
 
-  let grupo = "Externo";
+  let grupo = "Interno";
   const distancia = calcularDistancia(
     referenciaSala.latitude,
     referenciaSala.longitude,
     latitude,
     longitude
   );
-  if (distancia <= 2000) {
-    grupo = "Interno";
+  if (distancia >= 1000 ) {
+    grupo = "Externo";
   }
 
   let aluno = presencas.find(a => a.matricula === matricula);

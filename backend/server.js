@@ -89,7 +89,19 @@ app.post("/presenca", (req, res) => {
   }
    
   // Only allow justification if location is missing
-  if ((latitude == null || longitude == null)) {
+  if ((latitude == null || longitude == null)) { 
+    
+  // Se o aluno já mandou justificativa e deviceId existe → REGISTRAR UMA VEZ
+    if (justificativa && justificativa.trim() !== "") {
+
+        // impedir duplicidade pelo device
+        if (presencas.some(a => a.deviceId === deviceId)) {
+            return res.json({
+                msg: "Este dispositivo já registrou presença.",
+                exigirJustificativa: false
+            });
+        }
+      
   if (req.body.justificativa) {
     presencas.push({
       nome,

@@ -91,10 +91,24 @@ async function registrarPresenca() {
     justificativaInput.style.display = "none";
     tentativasFalhas = 0; // Zera a contagem de falhas após sucesso de GPS
     justificativa = "";
-  } else if (tentativasFalhas >= 2) {
+  } else if (tentativasFalhas > 2) {
     // se falhar duas vezes, solicita justificativa
     justificativaInput.style.display = "block";
-    justificativa = justificativaInput.value.trim() || "Sem justificativa";
+    justificativa = justificativaInput.value.trim();
+
+     // ★ Se justificativa ainda está vazia → bloquear envio
+  if (!justificativa) {
+    alert("Seu GPS falhou várias vezes. Por favor, escreva uma justificativa para continuar.");
+    botao.disabled = false;
+    botao.innerText = "Enviar Presença";
+
+    let deviceId = localStorage.getItem("deviceId");
+    if (!deviceId) {
+      deviceId = crypto.randomUUID();
+      localStorage.setItem("deviceId", deviceId);
+    }
+    return; // impede envio
+  }
     
   } else {
     alert("Erro ao obter localização. Tente novamente.");

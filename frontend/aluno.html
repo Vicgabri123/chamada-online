@@ -14,8 +14,8 @@
 <div class="card">
     <h2>Registro de Presença</h2>
     <div class="input-group">
-      <input id="nome" type="text" placeholder="Seu nome">
-      <input id="matricula" type="text" placeholder="Matrícula">
+      <input id="nome" type="text" placeholder="Seu nome" oninput="this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, '')">
+      <input id="matricula" type="text" placeholder="Matrícula" oninput="this.value = this.value.replace(/\D/g, '')">
     </div>
     <button id="btn-presenca" onclick="registrarPresenca()">Enviar Presença</button>
     <input id="justificativa" type="text" placeholder="Justifique (caso o GPS falhe)" style="display:none;">

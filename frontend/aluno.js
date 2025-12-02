@@ -73,6 +73,18 @@ async function registrarPresenca() {
     return;
   }
 
+  // Validar nome só com letras
+if (!/^[A-Za-zÀ-ÿ\s]+$/.test(nome)) {
+  alert("O nome deve conter apenas letras.");
+  return;
+}
+
+// Validar matrícula só com números
+if (!/^\d+$/.test(matricula)) {
+  alert("A matrícula deve conter apenas números.");
+  return;
+}
+
   // tenta obter localização
   let posicao = await obterLocalizacao().catch(() => {
     tentativasFalhas++;

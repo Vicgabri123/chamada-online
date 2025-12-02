@@ -83,6 +83,17 @@ app.post("/presenca", (req, res) => {
   if (!matricula) return res.json({ msg: "matricula é obrigatório!" });
   if (!deviceId) return res.json({ msg: "Identificador do dispositivo é obrigatório!" });
 
+  // Nome só letras
+if (!/^[A-Za-zÀ-ÿ\s]+$/.test(nome)) {
+  return res.json({ msg: "O nome deve conter apenas letras." });
+}
+
+// Matrícula só números
+if (!/^\d+$/.test(matricula)) {
+  return res.json({ msg: "A matrícula deve conter apenas números." });
+}
+
+
     let deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
   if (deviceAlreadyUsed) {
     return res.json({ msg: "Este dispositivo já registrou presença." });

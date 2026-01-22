@@ -3,6 +3,7 @@ const cors = require("cors");
 const app = express();
 const QRCode = require("qrcode");
 const path = require("path");
+const crypto = require("crypto");
 
 
 // Middleware
@@ -12,13 +13,8 @@ app.use(express.static(path.join(__dirname, "../frontend"))); // 👈 Serve todo
 
 const FRONTEND_URL = "http://localhost:3000";
 
-let listaAberta = false;
-let limite = 0;
-let expiresAt = null;
-let presencas = []; // { nome, horario, latitude, longitude, vezes }
-let referenciaSala = null;
 
-
+const chamadas = {};
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
   const R = 6371e3; // raio da Terra em metros
@@ -35,50 +31,86 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 // Criar lista
 app.post("/criar-lista", (req, res) => {
   const { limite: limiteInput, duracao, latitude,longitude } = req.body;
-  limite = parseInt(limiteInput);
-  presencas = [];
-  listaAberta = true;
-  expiresAt = Date.now() + (parseInt(duracao) * 60 * 60 * 1000);
-  referenciaSala = { latitude, longitude };
+
+  if (!latitude || !longitude) {
+    return res.json({ msg: "Localização do professor é obrigatória." });
+  }
+  
+  const callId = crypto.randomUUID();
+  
+  const limite = parseInt(limiteInput);
+  const expiresAt = Date.now() + (parseInt(duracao) * 60 * 60 * 1000);
+
+  chamadas[callId] = {
+  presencas: [],
+  limite,
+  expiresAt,
+  listaAberta: true,
+  referenciaSala: { latitude, longitude },
+  criadaEm: Date.now()
+}
   const horario = new Date().toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
-  const alunoUrl = `${req.protocol}://${req.get("host")}/aluno.html`;
+  const alunoUrl = `${req.protocol}://${req.get("host")}/aluno.html?callId=${callId}`;
 
-  QRCode.toDataURL(alunoUrl, (err, qrCodeData) => {
-    if (err) {
-      console.error("Erro ao gerar QR Code", err);
-      return res.status(500).json({ msg: "Erro ao gerar QR Code" });
-      }
+try{
+   const qrCodeData = await QRCode.toDataURL(alunoUrl);
 
-  res.json({ 
-    msg: `Lista criada com limite de ${limite} alunos e duração de ${duracao} horas.` ,
-    qrCode: qrCodeData,
-    referenciaSala
+    return res.json({
+      msg: `Lista criada com limite de ${limite} alunos e duração de ${duracao} horas.`,
+      qrCode: qrCodeData,
+      callId
     });
-  });
+  } catch (err) {
+    console.error("Erro ao gerar QR Code", err);
+    return res.status(500).json({ msg: "Erro ao gerar QR Code" });
+  }
 });
 // Fechar lista
 app.post("/fechar-lista", (req, res) => {
-  listaAberta = false;
-  res.json({ msg: "Lista fechada.", alunos: presencas });
+  const { callId } = req.body;
+
+  if (!chamadas[callId]) {
+    return res.json({ msg: "Chamada não encontrada." });
+  }
+
+  chamadas[callId].listaAberta = false;
+  
+  res.json({ msg: "Lista fechada.", alunos: chamadas[callId].presencas});
 });
 
 // Registrar presença
 app.post("/presenca", (req, res) => {
+   const {
+    callId,
+    nome,
+    matricula,
+    latitude,
+    longitude,
+    deviceId,
+    justificativa
+  } = req.body;
+  
   const horario = new Date().toLocaleTimeString("pt-BR", {
   timeZone: "America/Sao_Paulo",
   hour12: false
 });
-  if (!listaAberta) {
+
+   // Verificar chamada
+   const chamada = chamadas[callId];
+    if (!chamada) {
+    return res.json({ msg: "Chamada inválida ou encerrada." });
+  }
+
+  if (!chamada.listaAberta) {
     return res.json({ msg: "Nenhuma lista aberta no momento." });
   }
 
-  if (Date.now() > expiresAt) {
+  if (Date.now() > chamada.expiresAt) {
     listaAberta = false;
     return res.json({ msg: "O tempo da lista acabou! Aguarde a próxima chamada." });
   }
-
-  const { nome, matricula, latitude, longitude, deviceId, justificativa } = req.body;
+  // Validações básicas
   if (!nome) return res.json({ msg: "Nome é obrigatório!" });
   if (!matricula) return res.json({ msg: "matricula é obrigatório!" });
   if (!deviceId) return res.json({ msg: "Identificador do dispositivo é obrigatório!" });
@@ -94,21 +126,23 @@ if (!/^\d+$/.test(matricula)) {
 }
 
 
-    let deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
+    const deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
   if (deviceAlreadyUsed) {
     return res.json({ msg: "Este dispositivo já registrou presença." });
   }
    
   
- // Only allow justification if location is missing
+ // Sem localização → justificativa
   if ((latitude == null || longitude == null)) {
-  if (req.body.justificativa) {
-    presencas.push({
+    if (!justificativa || justificativa.trim() === "") {
+      return res.json({ msg: "Localização não encontrada. Informe uma justificativa." });
+    }
+     chamada.presencas.push({
       nome,
       matricula,
       horario,
       grupo: "Justificado",
-      justificativa: req.body.justificativa,
+      justificativa,
       deviceId
     });
     return res.json({ msg: `Presença registrada com justificativa às ${horario}` });
@@ -119,45 +153,65 @@ if (!/^\d+$/.test(matricula)) {
 
     // Check if this device has already registered
 
-
-    let grupo = "Interno";
+  // Calcular grupo
   const distancia = calcularDistancia(
-    referenciaSala.latitude,
-    referenciaSala.longitude,
+    chamada.referenciaSala.latitude,
+    chamada.referenciaSala.longitude,
     latitude,
     longitude
   );
-  if (distancia >= 2500) {
-    grupo = "Externo";
-  }
+  
+const grupo = distancia <= 2500 ? "Interno" : "Externo";
 
-  let aluno = presencas.find(a => a.matricula === matricula);
-  if (aluno) {
-    return res.json({ msg: `Matrícula ${matricula} já registrou presença.` });
-  }
+// Verificar matrícula duplicada
+const alunoJaExiste = chamada.presencas.some(
+  a => a.matricula === matricula
+);
 
-
-
-  if (!aluno) {
-    if (presencas.length >= limite) {
+  if (alunoJaExiste) {
+  return res.json({ msg: `Matrícula ${matricula} já registrou presença.` });
+}
+  if (chamada.presencas.length >= chamada.limite) {
       return res.json({ msg: "Limite de alunos atingido." });
     }
-    aluno = { nome, matricula, horario, vezes: 0, deviceId, grupo, justificativa };
-    presencas.push(aluno);
-  }
 
-  if (aluno.vezes >= 2) {
-    return res.json({ msg: "Você já registrou presença 2 vezes." });
-  }
+  // Registrar presença
+  chamada.presencas.push({
+  nome,
+  matricula,
+  horario,
+  grupo,
+  justificativa: "",
+  deviceId
+  });
 
-  aluno.vezes++;
-  res.json({ msg: `${nome} ${matricula} registrado com sucesso às ${horario} | Grupo: ${grupo} (${aluno.vezes}/2)` });
+return res.json({
+  msg: `${nome} registrado com sucesso às ${horario} | Grupo: ${grupo}`
 });
 
 // Rota para o professor ver a lista
 app.get("/lista", (req, res) => {
-  res.json(presencas);
+  const { callId } = req.params;
+
+  if (!chamadas[callId]) {
+    return res.json({ msg: "Chamada não encontrada." });
+  }
+
+  return res.json(chamadas[callId].presencas);
 });
+
+//app.get("/admin/chamadas", (req, res) => {
+//  const todasChamadas = Object.entries(chamadas).map(([callId, chamada]) => ({
+//    callId,
+//    aberta: chamada.listaAberta,
+//    criadaEm: chamada.criadaEm,
+//    expiresAt: chamada.expiresAt,
+ //   totalPresencas: chamada.presencas.length,
+ //   referenciaSala: chamada.referenciaSala
+//  }));
+
+//  res.json(todasChamadas);
+//});
 
 app.get("/",(req, res) =>{
   res.sendFile(path.join(__dirname, "../frontend/index.html"));;

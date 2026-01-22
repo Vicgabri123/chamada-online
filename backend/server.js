@@ -29,7 +29,7 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 }
 
 // Criar lista
-app.post("/criar-lista", (req, res) => {
+app.post("/criar-lista", async (req, res) => {
   const { limite: limiteInput, duracao, latitude,longitude } = req.body;
 
   if (!latitude || !longitude) {

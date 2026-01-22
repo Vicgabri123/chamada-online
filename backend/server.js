@@ -107,7 +107,7 @@ app.post("/presenca", (req, res) => {
   }
 
   if (Date.now() > chamada.expiresAt) {
-    listaAberta = false;
+    chamada.listaAberta = false;
     return res.json({ msg: "O tempo da lista acabou! Aguarde a próxima chamada." });
   }
   // Validações básicas
@@ -126,7 +126,7 @@ if (!/^\d+$/.test(matricula)) {
 }
 
 
-    const deviceAlreadyUsed = presencas.some(a => a.deviceId === deviceId);
+    const deviceAlreadyUsed = chamada.presencas.some(a => a.deviceId === deviceId);
   if (deviceAlreadyUsed) {
     return res.json({ msg: "Este dispositivo já registrou presença." });
   }
@@ -146,11 +146,9 @@ if (!/^\d+$/.test(matricula)) {
       deviceId
     });
     return res.json({ msg: `Presença registrada com justificativa às ${horario}` });
-  } else {
+  
     return res.json({ msg: "Localização não encontrada. Ative seu GPS ou forneça uma justificativa." });
   }
-}
-
     // Check if this device has already registered
 
   // Calcular grupo
@@ -191,7 +189,7 @@ return res.json({
 
 // Rota para o professor ver a lista
 app.get("/lista", (req, res) => {
-  const { callId } = req.params;
+  const { callId } = req.query;
 
   if (!chamadas[callId]) {
     return res.json({ msg: "Chamada não encontrada." });

@@ -64,6 +64,11 @@ async function verLista() {
   ul.innerHTML = "";
   try {
     const callId = localStorage.getItem("callIdProfessor");
+    if (!callId) {
+    showMessage("Nenhuma lista ativa.");
+    hideLoader();
+    return;
+}
     const res = await fetch(`${API_URL}/lista/${callId}`);
     const data = await res.json();
     if (!callId) {
@@ -80,7 +85,7 @@ async function verLista() {
 }
 
 async function criarLista() {
-  const confirmar = confirm("Tem certeza que deseja criar uma nova lista? Isso vai apagar a lista atual.");
+  const confirmar = confirm("Tem certeza que deseja criar uma nova lista? Isso encerrará a lista atual e criará uma nova.");
   if (!confirmar) return;
 
   const limite = document.getElementById("limite").value;
@@ -92,15 +97,13 @@ async function criarLista() {
     const longitude = pos.coords.longitude;
 
     try {
-      const res = await fetch(`${API_URL}/criar-lista/${callId}`, {
+      const res = await fetch(`${API_URL}/criar-lista/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ limite, duracao, latitude, longitude })
       });
       const data = await res.json();
       showMessage(data.msg || "Lista criada.");
-
-      localStorage.setItem("callIdProfessor", data.callId);
 
       if (data.callId) {
         localStorage.setItem("callIdProfessor", data.callId);
@@ -124,9 +127,10 @@ async function criarLista() {
 async function fecharLista() {
   try {
     const callId = localStorage.getItem("callIdProfessor");
-    await fetch(`${API_URL}/fechar-lista/${callId}`, { method: "POST" });
+    const res = await fetch(`${API_URL}/fechar-lista/${callId}`, { method: "POST" });
     const data = await res.json();
     showMessage(data.msg || "Lista fechada.");
+    localStorage.removeItem("callIdProfessor");
     document.getElementById("lista-alunos").innerHTML = "";
   } catch (err) {
     console.error("Erro ao fechar lista:", err);
@@ -213,5 +217,7 @@ setInterval(() => {
 /* ======= INICIALIZAÇÃO ======= */
 window.addEventListener("load", () => {
   showSavedQr();
-  verLista();
+  if (localStorage.getItem("callIdProfessor")) {
+    verLista();
+  }
 });

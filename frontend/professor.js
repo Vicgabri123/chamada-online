@@ -71,10 +71,7 @@ async function verLista() {
 }
     const res = await fetch(`${API_URL}/lista/${callId}`);
     const data = await res.json();
-    if (!callId) {
-  showMessage("Nenhuma lista ativa.");
-  return;
-}
+
     mostrarLista(data);
   } catch (err) {
     console.error("Erro ao atualizar lista:", err);
@@ -92,7 +89,11 @@ async function criarLista() {
   const duracao = document.getElementById("duracao").value;
   
 
-  navigator.geolocation.getCurrentPosition(async (pos) => {
+ navigator.geolocation.getCurrentPosition(
+  async (pos) => { ... },
+  () => alert("Não foi possível obter a localização."),
+  { timeout: 10000 }
+);
     const latitude = pos.coords.latitude;
     const longitude = pos.coords.longitude;
 
@@ -127,6 +128,10 @@ async function criarLista() {
 async function fecharLista() {
   try {
     const callId = localStorage.getItem("callIdProfessor");
+    if (!callId) {
+      showMessage("Nenhuma lista ativa para fechar.");
+    return;
+    }
     const res = await fetch(`${API_URL}/fechar-lista/${callId}`, { method: "POST" });
     const data = await res.json();
     showMessage(data.msg || "Lista fechada.");

@@ -59,22 +59,19 @@ function hideLoader() { const l = document.getElementById("loader"); if (l) l.st
 
 /* ======= FUNÇÕES PRINCIPAIS ======= */
 async function verLista() {
-  showLoader();
-  const ul = document.getElementById("lista-alunos");
-  ul.innerHTML = "";
-  try {
-    const callId = localStorage.getItem("callIdProfessor");
+   const callId = localStorage.getItem("callIdProfessor");
     if (!callId) {
     showMessage("Nenhuma lista ativa.");
     hideLoader();
     return;
 }
+  showLoader();
+  const ul = document.getElementById("lista-alunos");
+  ul.innerHTML = "";
+  try {
     const res = await fetch(`${API_URL}/lista/${callId}`);
     const data = await res.json();
-    if (!callId) {
-  showMessage("Nenhuma lista ativa.");
-  return;
-}
+    
     mostrarLista(data);
   } catch (err) {
     console.error("Erro ao atualizar lista:", err);
@@ -102,12 +99,14 @@ async function criarLista() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ limite, duracao, latitude, longitude })
       });
+
+        if (!res.ok) throw new Error("Erro ao criar lista");
+      
       const data = await res.json();
       showMessage(data.msg || "Lista criada.");
 
-      if (data.callId) {
-        localStorage.setItem("callIdProfessor", data.callId);
-        }
+      localStorage.setItem("callIdProfessor", data.callId);
+      showMessage(`Lista criada! Código: ${data.callId}`);
 
       if (data.qrCode) {
         const img = ensureQrImg();
@@ -127,6 +126,10 @@ async function criarLista() {
 async function fecharLista() {
   try {
     const callId = localStorage.getItem("callIdProfessor");
+    if (!callId) {
+  showMessage("Nenhuma lista ativa.");
+  return;
+  }
     const res = await fetch(`${API_URL}/fechar-lista/${callId}`, { method: "POST" });
     const data = await res.json();
     showMessage(data.msg || "Lista fechada.");
@@ -140,10 +143,7 @@ async function fecharLista() {
 
 function mostrarLista(alunos) {
   const callId = localStorage.getItem("callIdProfessor");
-if (!callId) {
-  showMessage("Nenhuma lista ativa.");
-  return;
-}
+
   const ul = document.getElementById("lista-alunos");
   ul.innerHTML = "";
   if (!Array.isArray(alunos) || alunos.length === 0) {

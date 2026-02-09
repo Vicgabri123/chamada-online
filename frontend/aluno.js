@@ -55,6 +55,14 @@ async function obterLocalizacao() {
 // ============================
 let tentativasFalhas = Number(localStorage.getItem("falhasGPS")) || 0;
 
+const params = new URLSearchParams(window.location.search);
+const callId = params.get("callId");
+
+if (!callId) {
+  alert("Chamada inválida ou expirada.");
+  return;
+}
+
 async function registrarPresenca() {
   const botao = document.getElementById("btn-presenca");
   const nome = document.getElementById("nome").value.trim();
@@ -147,12 +155,12 @@ if (!/^\d+$/.test(matricula)) {
   }
 
   // monta corpo da requisição
-  const body = { nome, matricula, latitude, longitude, justificativa, horario, deviceId };
+  const body = { callId, nome, matricula, latitude, longitude, justificativa, horario, deviceId };
 
   // ============================
   // 📡 Envia os dados para o servidor
   // ============================
-  const res = await fetch(`${API_URL}/presenca`, {
+  const res = await fetch(`${API_URL}/presenca/${callId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
